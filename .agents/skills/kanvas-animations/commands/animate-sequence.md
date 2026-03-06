@@ -1,8 +1,8 @@
 ---
-name: react-animation-studio:animate-sequence
+name: kanvas-animations:animate-sequence
 intent: /animate-sequence
 tags:
-  - react-animation-studio
+  - kanvas-animations
   - command
   - animate-sequence
 inputs: []

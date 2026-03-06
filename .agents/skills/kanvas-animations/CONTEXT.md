@@ -1,4 +1,4 @@
-# react-animation-studio Context
+# kanvas-animations Context
 
 ## Purpose
 Create beautiful, performant web animations for React and TypeScript applications. Includes background effects, text animations, 3D transforms, creative visual effects, Framer Motion, GSAP, and more.

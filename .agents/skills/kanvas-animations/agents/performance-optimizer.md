@@ -1,8 +1,8 @@
 ---
-name: react-animation-studio:performance-optimizer
+name: kanvas-animations:performance-optimizer
 intent: Performance Optimizer
 tags:
-  - react-animation-studio
+  - kanvas-animations
   - agent
   - performance-optimizer
 inputs: []

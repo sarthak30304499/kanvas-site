@@ -1,7 +1,7 @@
 # React Animation Studio Plugin Guide
 
 ## Purpose
-- Operational guide for working safely in `plugins/react-animation-studio`.
+- Operational guide for working safely in `plugins/kanvas-animations`.
 - Keep edits scoped, minimal, and aligned with this plugin's existing architecture.
 
 ## Supported Commands
@@ -26,7 +26,7 @@
 ## Required Validation Checks
 - Run `npm run check:plugin-context`.
 - Run `npm run check:plugin-schema`.
-- If code/scripts changed in this plugin, run targeted tests for `plugins/react-animation-studio`.
+- If code/scripts changed in this plugin, run targeted tests for `plugins/kanvas-animations`.
 
 ## Context Budget
 Load in this order and stop when you have enough context:

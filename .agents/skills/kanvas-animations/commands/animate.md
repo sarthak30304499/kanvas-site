@@ -1,8 +1,8 @@
 ---
-name: react-animation-studio:animate
+name: kanvas-animations:animate
 intent: /animate
 tags:
-  - react-animation-studio
+  - kanvas-animations
   - command
   - animate
 inputs: []

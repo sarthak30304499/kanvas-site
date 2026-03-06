@@ -1,8 +1,8 @@
 ---
-name: react-animation-studio:motion-designer
+name: kanvas-animations:motion-designer
 intent: Motion Designer
 tags:
-  - react-animation-studio
+  - kanvas-animations
   - agent
   - motion-designer
 inputs: []

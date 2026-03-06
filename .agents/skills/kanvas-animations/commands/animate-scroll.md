@@ -1,8 +1,8 @@
 ---
-name: react-animation-studio:animate-scroll
+name: kanvas-animations:animate-scroll
 intent: /animate-scroll
 tags:
-  - react-animation-studio
+  - kanvas-animations
   - command
   - animate-scroll
 inputs: []

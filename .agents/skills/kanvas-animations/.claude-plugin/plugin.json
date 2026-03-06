@@ -1,5 +1,5 @@
 {
-  "name": "react-animation-studio",
+  "name": "kanvas-animations",
   "version": "1.1.0",
   "description": "Create beautiful, performant web animations for React and TypeScript applications. Includes background effects, text animations, 3D transforms, creative visual effects, Framer Motion, GSAP, and more.",
   "author": {
@@ -8,7 +8,7 @@
     "url": "https://brooksidebi.com"
   },
   "license": "MIT",
-  "repository": "https://github.com/brooksidebi/react-animation-studio",
+  "repository": "https://github.com/brooksidebi/kanvas-animations",
   "keywords": [
     "react",
     "animation",

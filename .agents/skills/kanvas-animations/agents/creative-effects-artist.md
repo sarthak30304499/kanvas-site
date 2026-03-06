@@ -1,8 +1,8 @@
 ---
-name: react-animation-studio:creative-effects-artist
+name: kanvas-animations:creative-effects-artist
 intent: Creative Effects Artist Agent
 tags:
-  - react-animation-studio
+  - kanvas-animations
   - agent
   - creative-effects-artist
 inputs: []

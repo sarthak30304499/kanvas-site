@@ -1,4 +1,4 @@
-# react-animation-studio
+# kanvas-animations
 
 **Version:** 1.1.0 | **License:** MIT
 **Author:** Brookside BI (plugins@brooksidebi.com)
@@ -18,7 +18,7 @@ optimized for 60fps with built-in `prefers-reduced-motion` accessibility support
 ## Directory Structure
 
 ```
-react-animation-studio/
+kanvas-animations/
   .claude-plugin/plugin.json
   CLAUDE.md / CONTEXT_SUMMARY.md
   agents/                        # 6 agents

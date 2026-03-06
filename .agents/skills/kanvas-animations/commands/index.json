@@ -1,14 +1,14 @@
 {
   "version": 1,
-  "plugin": "react-animation-studio",
+  "plugin": "kanvas-animations",
   "type": "commands",
   "generatedBy": "scripts/generate-plugin-indexes.mjs",
   "entries": [
     {
-      "name": "react-animation-studio:animate-3d",
+      "name": "kanvas-animations:animate-3d",
       "intent": "/animate-3d Command",
       "tags": [
-        "react-animation-studio",
+        "kanvas-animations",
         "command",
         "animate-3d"
       ],
@@ -18,10 +18,10 @@
       "path": "commands/animate-3d.md"
     },
     {
-      "name": "react-animation-studio:animate-audit",
+      "name": "kanvas-animations:animate-audit",
       "intent": "/animate-audit",
       "tags": [
-        "react-animation-studio",
+        "kanvas-animations",
         "command",
         "animate-audit"
       ],
@@ -31,10 +31,10 @@
       "path": "commands/animate-audit.md"
     },
     {
-      "name": "react-animation-studio:animate-background",
+      "name": "kanvas-animations:animate-background",
       "intent": "/animate-background Command",
       "tags": [
-        "react-animation-studio",
+        "kanvas-animations",
         "command",
         "animate-background"
       ],
@@ -44,10 +44,10 @@
       "path": "commands/animate-background.md"
     },
     {
-      "name": "react-animation-studio:animate-component",
+      "name": "kanvas-animations:animate-component",
       "intent": "/animate-component",
       "tags": [
-        "react-animation-studio",
+        "kanvas-animations",
         "command",
         "animate-component"
       ],
@@ -57,10 +57,10 @@
       "path": "commands/animate-component.md"
     },
     {
-      "name": "react-animation-studio:animate-effects",
+      "name": "kanvas-animations:animate-effects",
       "intent": "/animate-effects Command",
       "tags": [
-        "react-animation-studio",
+        "kanvas-animations",
         "command",
         "animate-effects"
       ],
@@ -70,10 +70,10 @@
       "path": "commands/animate-effects.md"
     },
     {
-      "name": "react-animation-studio:animate-export",
+      "name": "kanvas-animations:animate-export",
       "intent": "/animate-export",
       "tags": [
-        "react-animation-studio",
+        "kanvas-animations",
         "command",
         "animate-export"
       ],
@@ -83,10 +83,10 @@
       "path": "commands/animate-export.md"
     },
     {
-      "name": "react-animation-studio:animate-preset",
+      "name": "kanvas-animations:animate-preset",
       "intent": "/animate-preset",
       "tags": [
-        "react-animation-studio",
+        "kanvas-animations",
         "command",
         "animate-preset"
       ],
@@ -96,10 +96,10 @@
       "path": "commands/animate-preset.md"
     },
     {
-      "name": "react-animation-studio:animate-scroll",
+      "name": "kanvas-animations:animate-scroll",
       "intent": "/animate-scroll",
       "tags": [
-        "react-animation-studio",
+        "kanvas-animations",
         "command",
         "animate-scroll"
       ],
@@ -109,10 +109,10 @@
       "path": "commands/animate-scroll.md"
     },
     {
-      "name": "react-animation-studio:animate-sequence",
+      "name": "kanvas-animations:animate-sequence",
       "intent": "/animate-sequence",
       "tags": [
-        "react-animation-studio",
+        "kanvas-animations",
         "command",
         "animate-sequence"
       ],
@@ -122,10 +122,10 @@
       "path": "commands/animate-sequence.md"
     },
     {
-      "name": "react-animation-studio:animate-text",
+      "name": "kanvas-animations:animate-text",
       "intent": "/animate-text Command",
       "tags": [
-        "react-animation-studio",
+        "kanvas-animations",
         "command",
         "animate-text"
       ],
@@ -135,10 +135,10 @@
       "path": "commands/animate-text.md"
     },
     {
-      "name": "react-animation-studio:animate-transition",
+      "name": "kanvas-animations:animate-transition",
       "intent": "/animate-transition",
       "tags": [
-        "react-animation-studio",
+        "kanvas-animations",
         "command",
         "animate-transition"
       ],
@@ -148,10 +148,10 @@
       "path": "commands/animate-transition.md"
     },
     {
-      "name": "react-animation-studio:animate",
+      "name": "kanvas-animations:animate",
       "intent": "/animate",
       "tags": [
-        "react-animation-studio",
+        "kanvas-animations",
         "command",
         "animate"
       ],

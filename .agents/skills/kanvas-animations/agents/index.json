@@ -1,14 +1,14 @@
 {
   "version": 1,
-  "plugin": "react-animation-studio",
+  "plugin": "kanvas-animations",
   "type": "agents",
   "generatedBy": "scripts/generate-plugin-indexes.mjs",
   "entries": [
     {
-      "name": "react-animation-studio:animation-architect",
+      "name": "kanvas-animations:animation-architect",
       "intent": "Animation Architect",
       "tags": [
-        "react-animation-studio",
+        "kanvas-animations",
         "agent",
         "animation-architect"
       ],
@@ -18,10 +18,10 @@
       "path": "agents/animation-architect.md"
     },
     {
-      "name": "react-animation-studio:creative-effects-artist",
+      "name": "kanvas-animations:creative-effects-artist",
       "intent": "Creative Effects Artist Agent",
       "tags": [
-        "react-animation-studio",
+        "kanvas-animations",
         "agent",
         "creative-effects-artist"
       ],
@@ -31,10 +31,10 @@
       "path": "agents/creative-effects-artist.md"
     },
     {
-      "name": "react-animation-studio:interaction-specialist",
+      "name": "kanvas-animations:interaction-specialist",
       "intent": "Interaction Specialist",
       "tags": [
-        "react-animation-studio",
+        "kanvas-animations",
         "agent",
         "interaction-specialist"
       ],
@@ -44,10 +44,10 @@
       "path": "agents/interaction-specialist.md"
     },
     {
-      "name": "react-animation-studio:motion-designer",
+      "name": "kanvas-animations:motion-designer",
       "intent": "Motion Designer",
       "tags": [
-        "react-animation-studio",
+        "kanvas-animations",
         "agent",
         "motion-designer"
       ],
@@ -57,10 +57,10 @@
       "path": "agents/motion-designer.md"
     },
     {
-      "name": "react-animation-studio:performance-optimizer",
+      "name": "kanvas-animations:performance-optimizer",
       "intent": "Performance Optimizer",
       "tags": [
-        "react-animation-studio",
+        "kanvas-animations",
         "agent",
         "performance-optimizer"
       ],
@@ -70,10 +70,10 @@
       "path": "agents/performance-optimizer.md"
     },
     {
-      "name": "react-animation-studio:transition-engineer",
+      "name": "kanvas-animations:transition-engineer",
       "intent": "Transition Engineer",
       "tags": [
-        "react-animation-studio",
+        "kanvas-animations",
         "agent",
         "transition-engineer"
       ],

@@ -1,8 +1,8 @@
 ---
-name: react-animation-studio:animate-export
+name: kanvas-animations:animate-export
 intent: /animate-export
 tags:
-  - react-animation-studio
+  - kanvas-animations
   - command
   - animate-export
 inputs: []

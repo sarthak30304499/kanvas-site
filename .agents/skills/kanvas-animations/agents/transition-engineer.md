@@ -1,8 +1,8 @@
 ---
-name: react-animation-studio:transition-engineer
+name: kanvas-animations:transition-engineer
 intent: Transition Engineer
 tags:
-  - react-animation-studio
+  - kanvas-animations
   - agent
   - transition-engineer
 inputs: []

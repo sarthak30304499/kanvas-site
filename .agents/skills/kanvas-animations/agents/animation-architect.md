@@ -1,8 +1,8 @@
 ---
-name: react-animation-studio:animation-architect
+name: kanvas-animations:animation-architect
 intent: Animation Architect
 tags:
-  - react-animation-studio
+  - kanvas-animations
   - agent
   - animation-architect
 inputs: []

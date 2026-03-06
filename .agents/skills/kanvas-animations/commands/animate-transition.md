@@ -1,8 +1,8 @@
 ---
-name: react-animation-studio:animate-transition
+name: kanvas-animations:animate-transition
 intent: /animate-transition
 tags:
-  - react-animation-studio
+  - kanvas-animations
   - command
   - animate-transition
 inputs: []

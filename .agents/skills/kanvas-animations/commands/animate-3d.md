@@ -1,8 +1,8 @@
 ---
-name: react-animation-studio:animate-3d
+name: kanvas-animations:animate-3d
 intent: /animate-3d Command
 tags:
-  - react-animation-studio
+  - kanvas-animations
   - command
   - animate-3d
 inputs: []

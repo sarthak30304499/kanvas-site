@@ -1,8 +1,8 @@
 ---
-name: react-animation-studio:interaction-specialist
+name: kanvas-animations:interaction-specialist
 intent: Interaction Specialist
 tags:
-  - react-animation-studio
+  - kanvas-animations
   - agent
   - interaction-specialist
 inputs: []

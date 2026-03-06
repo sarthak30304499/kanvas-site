@@ -1,8 +1,8 @@
 ---
-name: react-animation-studio:animate-preset
+name: kanvas-animations:animate-preset
 intent: /animate-preset
 tags:
-  - react-animation-studio
+  - kanvas-animations
   - command
   - animate-preset
 inputs: []

@@ -1,8 +1,8 @@
 ---
-name: react-animation-studio:animate-background
+name: kanvas-animations:animate-background
 intent: /animate-background Command
 tags:
-  - react-animation-studio
+  - kanvas-animations
   - command
   - animate-background
 inputs: []

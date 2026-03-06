@@ -1,8 +1,8 @@
 ---
-name: react-animation-studio:animate-audit
+name: kanvas-animations:animate-audit
 intent: /animate-audit
 tags:
-  - react-animation-studio
+  - kanvas-animations
   - command
   - animate-audit
 inputs: []
@@ -166,7 +166,7 @@ The `--fix` flag can automatically fix:
 # In GitHub Actions
 - name: Animation Audit
   run: |
-    npx @react-animation-studio/cli audit --report json
+    npx @kanvas-animations/cli audit --report json
     if [ $? -ne 0 ]; then
       echo "Animation audit failed"
       exit 1
