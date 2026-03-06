@@ -1,527 +1,255 @@
-# Creative Effects Skill
+# Creative Effects Skill — Kanvas Site
 
-Expert knowledge for artistic and creative animation effects - morphing shapes, liquid animations, glitch effects, distortion, and experimental visual techniques that push creative boundaries.
+Expert knowledge for creative visual effects: CSS clip-path reveals, GSAP logo assembly, shimmer
+overlays, magnetic hover, glitch text, and the scroll-cube breakup/reassembly sequence. All
+implemented with SCSS + vanilla JS — no React, no Framer Motion.
 
-## When to Use
+## Scroll Cube: Logo Assembly Effect
 
-Activate this skill when:
-- User wants liquid/fluid animations
-- Creating morphing shape transitions
-- Building glitch or distortion effects
-- Need experimental/artistic visuals
-- Creating loading animations with personality
-- Building creative reveals and transitions
+The most complex creative effect on the site. The Kanvas cube SVG breaks apart on load and
+reassembles as the user scrolls. Implemented entirely in `main.js`.
 
-## File Patterns
+### Architecture
 
-- `**/*.tsx` with creative components
-- `**/components/Creative*.tsx`
-- `**/components/Effect*.tsx`
-- `**/components/Liquid*.tsx`
+```js
+// main.js — initScrollCube()
+const initScrollCube = () => {
+    const wrapper = document.querySelector('.scroll-cube-wrapper');
+    if (!wrapper) return;
 
-## Creative Effect Types
+    // 1. Inject SVG pieces (each piece is a <svg> with a <path> clip)
+    // 2. GSAP.set() scatters pieces with random rotateY + translate
+    // 3. ScrollTrigger scrub timeline reassembles them to origin position
+    // 4. On complete: add .reunited-float class for CSS float animation
+};
+```
 
-### 1. Morphing Shapes
+### SCSS
 
-#### Liquid Button
-```tsx
-import { motion, useAnimation } from 'framer-motion';
+```scss
+.scroll-cube-wrapper {
+    position: relative;
+    width: 200px;
+    height: 200px;
+}
 
-export function LiquidButton({ children }: { children: React.ReactNode }) {
-  const controls = useAnimation();
+.scroll-cube-piece {
+    position: absolute;
+    inset: 0;
+    will-change: transform, opacity;
+}
 
-  const liquidVariants = {
-    rest: {
-      d: "M0,20 Q25,0 50,20 T100,20 L100,80 Q75,100 50,80 T0,80 Z",
-    },
-    hover: {
-      d: "M0,30 Q25,10 50,30 T100,30 L100,70 Q75,90 50,70 T0,70 Z",
-    },
-    tap: {
-      d: "M0,25 Q25,15 50,25 T100,25 L100,75 Q75,85 50,75 T0,75 Z",
-    },
-  };
+.reunited-float {
+    animation: reunitedFloat 6s ease-in-out infinite;
+}
 
-  return (
-    <motion.button
-      className="relative px-8 py-4 text-white font-medium"
-      initial="rest"
-      whileHover="hover"
-      whileTap="tap"
-    >
-      <svg
-        className="absolute inset-0 w-full h-full"
-        viewBox="0 0 100 100"
-        preserveAspectRatio="none"
-      >
-        <motion.path
-          fill="url(#liquid-gradient)"
-          variants={liquidVariants}
-          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-        />
-        <defs>
-          <linearGradient id="liquid-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#667eea" />
-            <stop offset="100%" stopColor="#764ba2" />
-          </linearGradient>
-        </defs>
-      </svg>
-      <span className="relative z-10">{children}</span>
-    </motion.button>
-  );
+@keyframes reunitedFloat {
+    0%, 100% { transform: translateY(0) rotateY(0deg); }
+    25%       { transform: translateY(-12px) rotateY(5deg); }
+    75%       { transform: translateY(6px)   rotateY(-3deg); }
+}
+
+@keyframes glowPulse {
+    0%, 100% { filter: drop-shadow(0 0 8px  rgba($primary, 0.3)); }
+    50%       { filter: drop-shadow(0 0 20px rgba($primary, 0.6)); }
+}
+
+.reunited-glow {
+    animation: glowPulse 3s ease-in-out infinite;
 }
 ```
 
-#### Morphing Blob
-```tsx
-export function MorphingBlob() {
-  const paths = [
-    "M45.3,-51.2C58.3,-40.8,68.4,-25.6,71.8,-8.4C75.2,8.8,71.9,28,61.6,41.8C51.3,55.6,34,64,15.6,68.9C-2.8,73.8,-22.3,75.2,-38.1,67.6C-53.9,60,-66,43.4,-71.4,24.9C-76.8,6.4,-75.5,-14,-67.4,-30.7C-59.3,-47.4,-44.4,-60.4,-28.6,-69.7C-12.8,-79,-0.1,-84.6,8.9,-78.5C17.9,-72.4,32.3,-54.6,45.3,-51.2Z",
-    "M39.9,-47.1C53.3,-36.9,66.7,-26.3,72.2,-11.9C77.7,2.5,75.4,20.7,66.4,35.1C57.4,49.5,41.7,60.1,24.6,66.2C7.5,72.3,-11,73.9,-27.8,68.4C-44.6,62.9,-59.7,50.3,-67.8,34.3C-75.9,18.3,-77,-1.1,-72.1,-18.7C-67.2,-36.3,-56.3,-52.1,-42.4,-62.1C-28.5,-72.1,-11.6,-76.3,1.8,-78.5C15.2,-80.7,26.5,-57.3,39.9,-47.1Z",
-    "M42.7,-49.7C55.5,-38.8,66.1,-25.3,69.7,-9.8C73.3,5.7,69.9,23.2,60.6,37.4C51.3,51.6,36.1,62.5,19.3,68.3C2.5,74.1,-15.9,74.8,-32.8,68.7C-49.7,62.6,-65.1,49.7,-72.6,33.4C-80.1,17.1,-79.7,-2.6,-73.3,-20C-66.9,-37.4,-54.5,-52.5,-40.1,-63C-25.7,-73.5,-9.3,-79.4,3.6,-83.7C16.5,-88,29.9,-60.6,42.7,-49.7Z",
-  ];
+## CSS clip-path Reveals
 
-  return (
-    <motion.svg viewBox="-100 -100 200 200" className="w-64 h-64">
-      <motion.path
-        fill="url(#blob-gradient)"
-        animate={{
-          d: paths,
-        }}
-        transition={{
-          duration: 10,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
-      <defs>
-        <linearGradient id="blob-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#667eea" />
-          <stop offset="50%" stopColor="#764ba2" />
-          <stop offset="100%" stopColor="#f093fb" />
-        </linearGradient>
-      </defs>
-    </motion.svg>
-  );
+### Wipe reveal (entrance)
+
+```scss
+// Clip from bottom — element appears to rise into view
+.clip-reveal {
+    clip-path: inset(100% 0 0 0);
+    transition: clip-path 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+
+    &.is-visible {
+        clip-path: inset(0% 0 0 0);
+    }
 }
 ```
 
-### 2. Glitch Effects
+### GSAP clip-path scrub
 
-#### Glitch Text
-```tsx
-export function GlitchText({ children }: { children: string }) {
-  return (
-    <div className="relative inline-block">
-      {/* Main text */}
-      <span className="relative z-10">{children}</span>
+```js
+gsap.fromTo('.reveal-card',
+    { clipPath: 'inset(0 100% 0 0)' },
+    { clipPath: 'inset(0 0% 0 0)',
+      scrollTrigger: { trigger: '.reveal-card', start: 'top 85%', end: 'top 50%', scrub: 1 }
+    }
+);
+```
 
-      {/* Glitch layer 1 - Red */}
-      <motion.span
-        className="absolute inset-0 text-red-500 opacity-80"
-        style={{ clipPath: 'inset(0 0 0 0)' }}
-        animate={{
-          x: [-2, 2, -2],
-          clipPath: [
-            'inset(40% 0 61% 0)',
-            'inset(92% 0 1% 0)',
-            'inset(43% 0 1% 0)',
-            'inset(25% 0 58% 0)',
-          ],
-        }}
-        transition={{
-          duration: 0.3,
-          repeat: Infinity,
-          repeatType: 'reverse',
-        }}
-      >
-        {children}
-      </motion.span>
+### Split curtain (top + bottom)
 
-      {/* Glitch layer 2 - Cyan */}
-      <motion.span
-        className="absolute inset-0 text-cyan-500 opacity-80"
-        style={{ clipPath: 'inset(0 0 0 0)' }}
-        animate={{
-          x: [2, -2, 2],
-          clipPath: [
-            'inset(85% 0 7% 0)',
-            'inset(15% 0 80% 0)',
-            'inset(45% 0 50% 0)',
-            'inset(70% 0 25% 0)',
-          ],
-        }}
-        transition={{
-          duration: 0.2,
-          repeat: Infinity,
-          repeatType: 'reverse',
-        }}
-      >
-        {children}
-      </motion.span>
-    </div>
-  );
+```js
+// Two panels that retract in opposite directions on scroll
+gsap.to('.curtain-top', {
+    scaleY: 0, transformOrigin: 'top',
+    scrollTrigger: { trigger: '.curtain-wrapper', start: 'top 80%', end: 'top 30%', scrub: 1 }
+});
+gsap.to('.curtain-bottom', {
+    scaleY: 0, transformOrigin: 'bottom',
+    scrollTrigger: { trigger: '.curtain-wrapper', start: 'top 80%', end: 'top 30%', scrub: 1 }
+});
+```
+
+## Shimmer Overlay (CSS only)
+
+```scss
+@keyframes shimmer {
+    0%   { background-position: -200% center; }
+    100% { background-position:  200% center; }
+}
+
+.shimmer-card {
+    position: relative;
+    overflow: hidden;
+
+    &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+            105deg,
+            transparent 40%,
+            rgba(255, 255, 255, 0.06) 50%,
+            transparent 60%
+        );
+        background-size: 200% 100%;
+        animation: shimmer 2.5s linear infinite;
+        pointer-events: none;
+    }
 }
 ```
 
-#### Glitch Image
-```tsx
-export function GlitchImage({ src, alt }: { src: string; alt: string }) {
-  return (
-    <div className="relative overflow-hidden">
-      <img src={src} alt={alt} className="relative z-10" />
+## Glitch Text Effect (CSS only)
 
-      <motion.img
-        src={src}
-        alt=""
-        className="absolute inset-0 opacity-50"
-        style={{ mixBlendMode: 'multiply' }}
-        animate={{
-          x: [-5, 5, -5],
-          filter: ['hue-rotate(0deg)', 'hue-rotate(90deg)', 'hue-rotate(0deg)'],
-        }}
-        transition={{
-          duration: 0.2,
-          repeat: Infinity,
-        }}
-      />
+```scss
+.glitch {
+    position: relative;
 
-      <motion.div
-        className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-cyan-500/20"
-        animate={{
-          opacity: [0, 0.3, 0],
-          scaleY: [1, 1.02, 1],
-        }}
-        transition={{
-          duration: 0.1,
-          repeat: Infinity,
-          repeatDelay: 2,
-        }}
-      />
-    </div>
-  );
+    &::before,
+    &::after {
+        content: attr(data-text);
+        position: absolute;
+        inset: 0;
+    }
+
+    &::before {
+        color: rgba($primary, 0.8);
+        clip-path: inset(40% 0 61% 0);
+        animation: glitchTop 2s infinite linear;
+    }
+
+    &::after {
+        color: rgba(255, 255, 255, 0.8);
+        clip-path: inset(85% 0 7%  0);
+        animation: glitchBottom 2s infinite linear;
+    }
+}
+
+@keyframes glitchTop {
+    0%,  90%  { transform: translateX(0); }
+    91%        { transform: translateX(-2px); clip-path: inset(40% 0 61% 0); }
+    93%        { transform: translateX(2px);  clip-path: inset(15% 0 80% 0); }
+    95%        { transform: translateX(-1px); clip-path: inset(70% 0 25% 0); }
+    100%       { transform: translateX(0);   clip-path: inset(40% 0 61% 0); }
+}
+
+@keyframes glitchBottom {
+    0%,  92%  { transform: translateX(0); }
+    93%        { transform: translateX(2px);  clip-path: inset(85% 0 7% 0); }
+    95%        { transform: translateX(-2px); clip-path: inset(50% 0 45% 0); }
+    97%        { transform: translateX(1px);  clip-path: inset(20% 0 75% 0); }
+    100%       { transform: translateX(0);   clip-path: inset(85% 0 7% 0); }
 }
 ```
 
-### 3. Liquid/Fluid Effects
+Hugo template usage:
 
-#### Liquid Fill
-```tsx
-export function LiquidFill({ progress = 0.7 }: { progress?: number }) {
-  const fillHeight = progress * 100;
-
-  return (
-    <div className="relative w-32 h-48 bg-slate-800 rounded-2xl overflow-hidden">
-      {/* Liquid */}
-      <motion.div
-        className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-blue-600 to-blue-400"
-        initial={{ height: 0 }}
-        animate={{ height: `${fillHeight}%` }}
-        transition={{ duration: 2, ease: 'easeOut' }}
-      >
-        {/* Wave effect */}
-        <svg
-          className="absolute top-0 left-0 w-full"
-          viewBox="0 0 100 20"
-          preserveAspectRatio="none"
-          style={{ transform: 'translateY(-50%)' }}
-        >
-          <motion.path
-            fill="currentColor"
-            className="text-blue-400"
-            d="M0,10 Q25,0 50,10 T100,10 L100,20 L0,20 Z"
-            animate={{
-              d: [
-                "M0,10 Q25,0 50,10 T100,10 L100,20 L0,20 Z",
-                "M0,10 Q25,20 50,10 T100,10 L100,20 L0,20 Z",
-                "M0,10 Q25,0 50,10 T100,10 L100,20 L0,20 Z",
-              ],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          />
-        </svg>
-      </motion.div>
-
-      {/* Bubbles */}
-      {Array.from({ length: 5 }).map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute w-2 h-2 bg-white/30 rounded-full"
-          style={{
-            left: `${20 + i * 15}%`,
-            bottom: 0,
-          }}
-          animate={{
-            y: [0, -fillHeight * 2],
-            opacity: [0, 1, 0],
-            scale: [0.5, 1, 0.5],
-          }}
-          transition={{
-            duration: 2 + Math.random(),
-            delay: i * 0.3,
-            repeat: Infinity,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
+```html
+<span class="glitch" data-text="{{ .Title }}">{{ .Title }}</span>
 ```
 
-### 4. Distortion Effects
+## Magnetic Hover (vanilla JS)
 
-#### Magnetic Button
-```tsx
-export function MagneticButton({ children }: { children: React.ReactNode }) {
-  const ref = useRef<HTMLButtonElement>(null);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!ref.current) return;
-    const rect = ref.current.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-
-    const distanceX = e.clientX - centerX;
-    const distanceY = e.clientY - centerY;
-
-    setPosition({
-      x: distanceX * 0.3,
-      y: distanceY * 0.3,
+```js
+// static/scripts/main.js or a small inline script
+document.querySelectorAll('[data-magnetic]').forEach(el => {
+    el.addEventListener('mousemove', e => {
+        const rect = el.getBoundingClientRect();
+        const relX = (e.clientX - rect.left) / rect.width  - 0.5;
+        const relY = (e.clientY - rect.top)  / rect.height - 0.5;
+        gsap.to(el, { x: relX * 12, y: relY * 8, duration: 0.3, ease: 'power2.out' });
     });
-  };
-
-  const handleMouseLeave = () => {
-    setPosition({ x: 0, y: 0 });
-  };
-
-  return (
-    <motion.button
-      ref={ref}
-      className="px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl text-white font-medium"
-      animate={{ x: position.x, y: position.y }}
-      transition={{ type: 'spring', stiffness: 150, damping: 15 }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-    >
-      {children}
-    </motion.button>
-  );
-}
+    el.addEventListener('mouseleave', () => {
+        gsap.to(el, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1, 0.5)' });
+    });
+});
 ```
 
-#### Elastic Container
-```tsx
-export function ElasticContainer({ children }: { children: React.ReactNode }) {
-  const [isPressed, setIsPressed] = useState(false);
-
-  return (
-    <motion.div
-      className="cursor-pointer"
-      animate={{
-        scaleX: isPressed ? 1.1 : 1,
-        scaleY: isPressed ? 0.9 : 1,
-      }}
-      transition={{
-        type: 'spring',
-        stiffness: 400,
-        damping: 10,
-      }}
-      onMouseDown={() => setIsPressed(true)}
-      onMouseUp={() => setIsPressed(false)}
-      onMouseLeave={() => setIsPressed(false)}
-    >
-      {children}
-    </motion.div>
-  );
-}
+```html
+<button class="btn-primary" data-magnetic>Get Started</button>
 ```
 
-### 5. Creative Loaders
+## Counter Scramble (fire-once)
 
-#### DNA Helix Loader
-```tsx
-export function DNALoader() {
-  const dots = Array.from({ length: 10 });
+Number counters are the only place where `once: true` is appropriate:
 
-  return (
-    <div className="flex items-center justify-center h-20">
-      {dots.map((_, i) => (
-        <div key={i} className="relative w-4 mx-0.5">
-          <motion.div
-            className="absolute w-3 h-3 bg-blue-500 rounded-full"
-            animate={{
-              y: [-15, 15, -15],
-              scale: [1, 0.8, 1],
-              opacity: [1, 0.5, 1],
-            }}
-            transition={{
-              duration: 1,
-              delay: i * 0.1,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          />
-          <motion.div
-            className="absolute w-3 h-3 bg-purple-500 rounded-full"
-            animate={{
-              y: [15, -15, 15],
-              scale: [0.8, 1, 0.8],
-              opacity: [0.5, 1, 0.5],
-            }}
-            transition={{
-              duration: 1,
-              delay: i * 0.1,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          />
-        </div>
-      ))}
-    </div>
-  );
-}
+```js
+// main.js — animateCounters()
+const animateCounters = () => {
+    document.querySelectorAll('[data-count]').forEach(el => {
+        const target = parseInt(el.dataset.count, 10);
+        const suffix = el.dataset.suffix || '';
+        gsap.fromTo(el,
+            { innerText: 0 },
+            {
+                innerText: target,
+                duration: 2,
+                ease: 'power2.out',
+                snap: { innerText: 1 },
+                onUpdate() { el.textContent = Math.round(this.targets()[0]._gsap.innerText) + suffix; }
+            }
+        );
+    });
+};
+
+ScrollTrigger.create({
+    trigger: '.hero-stats',
+    start: 'top 70%',
+    once: true,
+    onEnter: animateCounters,
+});
 ```
 
-#### Orbiting Loader
-```tsx
-export function OrbitingLoader() {
-  const orbits = [
-    { radius: 20, duration: 1.5, color: '#667eea' },
-    { radius: 35, duration: 2, color: '#764ba2' },
-    { radius: 50, duration: 2.5, color: '#f093fb' },
-  ];
+## GSAP Creative Sequence (Timeline)
 
-  return (
-    <div className="relative w-32 h-32">
-      {/* Center dot */}
-      <motion.div
-        className="absolute top-1/2 left-1/2 w-4 h-4 -ml-2 -mt-2 bg-white rounded-full"
-        animate={{ scale: [1, 1.2, 1] }}
-        transition={{ duration: 1, repeat: Infinity }}
-      />
+For complex multi-step entrance sequences (not scroll-scrub):
 
-      {/* Orbiting dots */}
-      {orbits.map((orbit, i) => (
-        <motion.div
-          key={i}
-          className="absolute top-1/2 left-1/2 w-3 h-3 -ml-1.5 -mt-1.5 rounded-full"
-          style={{ backgroundColor: orbit.color }}
-          animate={{
-            x: [orbit.radius, 0, -orbit.radius, 0, orbit.radius],
-            y: [0, orbit.radius, 0, -orbit.radius, 0],
-          }}
-          transition={{
-            duration: orbit.duration,
-            repeat: Infinity,
-            ease: 'linear',
-          }}
-        />
-      ))}
-    </div>
-  );
-}
+```js
+// One-shot entrance (acceptable for above-the-fold, page load only)
+const tl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+tl.from('.hero-badge',    { opacity: 0, y: 20, scale: 0.9, duration: 0.5 })
+  .from('.hero-title',    { opacity: 0, y: 30, duration: 0.7 }, '-=0.2')
+  .from('.hero-subtitle', { opacity: 0, y: 20, duration: 0.6 }, '-=0.4')
+  .from('.hero-cta',      { opacity: 0, y: 20, scale: 0.96, duration: 0.5 }, '-=0.3');
 ```
 
-### 6. Reveal Effects
+This pattern is used in `main.js` for the initial header entrance only. All below-fold content
+uses scrub-based animations.
 
-#### Mask Reveal
-```tsx
-export function MaskReveal({
-  children,
-  delay = 0,
-}: {
-  children: React.ReactNode;
-  delay?: number;
-}) {
-  return (
-    <div className="relative overflow-hidden">
-      <motion.div
-        initial={{ y: '100%' }}
-        animate={{ y: '0%' }}
-        transition={{
-          duration: 0.8,
-          delay,
-          ease: [0.25, 0.1, 0.25, 1],
-        }}
-      >
-        {children}
-      </motion.div>
-      <motion.div
-        className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500"
-        initial={{ x: '0%' }}
-        animate={{ x: '100%' }}
-        transition={{
-          duration: 0.6,
-          delay: delay + 0.2,
-          ease: [0.25, 0.1, 0.25, 1],
-        }}
-      />
-    </div>
-  );
-}
-```
+## Anti-Patterns
 
-#### Split Reveal
-```tsx
-export function SplitReveal({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="relative overflow-hidden">
-      <div className="relative z-10">{children}</div>
-
-      {/* Top curtain */}
-      <motion.div
-        className="absolute inset-x-0 top-0 h-1/2 bg-slate-900 origin-top"
-        initial={{ scaleY: 1 }}
-        animate={{ scaleY: 0 }}
-        transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
-      />
-
-      {/* Bottom curtain */}
-      <motion.div
-        className="absolute inset-x-0 bottom-0 h-1/2 bg-slate-900 origin-bottom"
-        initial={{ scaleY: 1 }}
-        animate={{ scaleY: 0 }}
-        transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
-      />
-    </div>
-  );
-}
-```
-
-## Examples
-
-<example>
-Context: User wants a liquid morphing button
-user: "Create a button that feels liquid when hovered"
-assistant: Using the LiquidButton component:
-```tsx
-<LiquidButton>Get Started</LiquidButton>
-```
-The button's background morphs like liquid on hover and tap.
-</example>
-
-<example>
-Context: User wants glitch text effect
-user: "Add a glitch effect to my heading"
-assistant: Using GlitchText:
-```tsx
-<h1 className="text-4xl font-bold">
-  <GlitchText>CYBERPUNK 2077</GlitchText>
-</h1>
-```
-</example>
-
-## Related Skills
-
-- **background-animations** - Full-page creative backgrounds
-- **accent-animations** - Decorative elements
-- **svg-animations** - Path morphing
-
-## Author
-
-Created by Brookside BI as part of React Animation Studio
+- `rotation: 360` for continuous spin — too dramatic, use slow directional drift
+- `bounce.out` or `elastic.out` in scroll-scrub contexts — these eases need `duration`, not scrub
+- `filter: blur()` animated on every frame — use CSS `opacity` instead where possible
+- Inline `style="..."` — all creative effects belong in SCSS
+- Hard-coded `#00b39f` — always use `$primary`

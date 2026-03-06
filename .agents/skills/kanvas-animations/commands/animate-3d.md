@@ -10,139 +10,156 @@ risk: medium
 cost: medium
 ---
 
-# /animate-3d Command
+# /animate-3d
 
-Create CSS/JS-based 3D animations including flip cards, tilt effects, rotating cubes, parallax depth layers, and 3D carousels without WebGL.
+CSS + vanilla JS 3D effects for Kanvas. No WebGL, no React, no Framer Motion.
 
-## Usage
+> Uses CSS `perspective`, `transform-style: preserve-3d`, and `hero-glass.js` patterns.
 
-```
-/animate-3d <type> [options]
-```
+## 3D Techniques
 
-## 3D Animation Types
+| Type | Implementation |
+|------|---------------|
+| `tilt` | `hero-glass.js` `[data-tilt]` via CSS custom properties |
+| `flip-card` | CSS `perspective` + `rotateY(180deg)` on hover/click |
+| `float` | `[data-float]` data attribute + `hero-glass.js` stagger |
+| `perspective-scrub` | GSAP `rotateY` + `scrub: 1` (below-fold only) |
+| `depth-parallax` | Multiple `scrubEach()` at different y distances |
 
-| Type | Description |
-|------|-------------|
-| `flip-card` | Card that flips to reveal back content |
-| `flip-hover` | Card that flips on hover |
-| `tilt` | Interactive tilt effect on mouse move |
-| `tilt-shine` | Tilt with shiny light reflection |
-| `cube` | 3D rotating cube with 6 faces |
-| `carousel` | 3D rotating carousel |
-| `parallax` | Multi-layer parallax depth effect |
-| `door` | 3D door opening reveal |
-| `book` | Page turning book effect |
+## Patterns
 
-## Options
+### Tilt Card (hero-glass.js)
 
-- `--perspective <number>` - CSS perspective value (default: 1000px)
-- `--duration <number>` - Animation duration in seconds
-- `--trigger <click|hover|auto>` - How to trigger the animation
-- `--direction <x|y|both>` - Rotation axis
-- `--intensity <low|medium|high>` - Effect strength
-- `--interactive` - Enable mouse tracking
+Any element with `[data-tilt]` gets mouse-tracking 3D tilt automatically via `hero-glass.js`.
 
-## Examples
-
-### Click-to-Flip Card
-```
-/animate-3d flip-card --trigger click --duration 0.6
+```html
+<!-- In Hugo partial -->
+<div class="feature-card" data-tilt>
+  <div class="card-content">...</div>
+</div>
 ```
 
-Generates:
-```tsx
-<FlipCard
-  front={<div>Front Content</div>}
-  back={<div>Back Content</div>}
-/>
-```
-
-### Hover Flip Card
-```
-/animate-3d flip-hover --duration 0.6
-```
-
-### Interactive Tilt Card
-```
-/animate-3d tilt --intensity medium --interactive
-```
-
-Generates:
-```tsx
-<TiltCard>
-  <h3>Interactive Card</h3>
-  <p>Move your mouse to see the 3D tilt effect!</p>
-</TiltCard>
-```
-
-### Tilt with Shine Effect
-```
-/animate-3d tilt-shine --intensity high
-```
-
-### Rotating 3D Cube
-```
-/animate-3d cube --trigger auto --direction both
-```
-
-### 3D Carousel
-```
-/animate-3d carousel --perspective 1200
-```
-
-### Parallax Depth Layers
-```
-/animate-3d parallax --interactive --intensity high
-```
-
-### 3D Door Reveal
-```
-/animate-3d door --trigger click --duration 0.8
-```
-
-## CSS 3D Concepts
-
-### Perspective Container
-```css
-.perspective-container {
-  perspective: 1000px;
-  perspective-origin: center;
-}
-```
-
-### 3D Transform Style
-```css
-.card-3d {
+```scss
+// In _features.scss
+.feature-card[data-tilt] {
   transform-style: preserve-3d;
-  backface-visibility: hidden;
+  // hero-glass.js sets --tilt-x / --tilt-y CSS custom properties
+  transform: perspective(800px)
+             rotateX(calc(var(--tilt-y, 0) * 1deg))
+             rotateY(calc(var(--tilt-x, 0) * 1deg));
+  transition: transform 0.15s ease;
 }
 ```
 
-## Output
+### Float Animation ([data-float])
 
-The command generates:
-1. **React Component** - Complete 3D animation component
-2. **TypeScript Types** - Full prop definitions
-3. **CSS Utilities** - Required CSS for 3D transforms
-4. **Usage Examples** - Integration patterns
+Elements with `[data-float]` get staggered float delays from `hero-glass.js`.
 
-## Best Practices
+```html
+<div class="accent-shape" data-float></div>
+<div class="accent-shape" data-float></div>
+<div class="accent-shape" data-float></div>
+```
 
-- Always set `perspective` on parent container
-- Use `transform-style: preserve-3d` for nested 3D
-- Set `backface-visibility: hidden` for flip effects
-- Use `will-change: transform` for performance
-- Test on mobile devices (touch interactions differ)
+```scss
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  33%       { transform: translateY(-12px) rotate(2deg); }
+  66%       { transform: translateY(-6px) rotate(-1deg); }
+}
 
-## Browser Support Notes
+[data-float] {
+  animation: float 4s ease-in-out infinite;
+  // hero-glass.js adds individual animation-delay via JS
+}
+```
 
-- CSS 3D transforms supported in all modern browsers
-- Safari may need `-webkit-` prefixes for some properties
-- `transform-style: preserve-3d` has some edge cases in Safari
+### CSS Flip Card
 
-## Related Commands
+```html
+<!-- Hugo partial -->
+<div class="flip-card" tabindex="0" aria-label="Feature card, press Enter to flip">
+  <div class="flip-card__inner">
+    <div class="flip-card__front">
+      <h3>Feature Name</h3>
+    </div>
+    <div class="flip-card__back">
+      <p>Feature detail</p>
+    </div>
+  </div>
+</div>
+```
 
-- `/animate-effects` - Creative visual effects
-- `/animate-component` - Add animation to existing components
-- `/animate-scroll` - Scroll-triggered 3D reveals
+```scss
+.flip-card {
+  perspective: 1000px;
+  cursor: pointer;
+
+  &__inner {
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  &:hover &__inner,
+  &:focus &__inner {
+    transform: rotateY(180deg);
+  }
+
+  &__front,
+  &__back {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  &__back {
+    position: absolute;
+    inset: 0;
+    transform: rotateY(180deg);
+  }
+}
+```
+
+### GSAP Perspective Scrub (below-fold only)
+
+```javascript
+// In initScrollAnimations() in main.js
+const cards3d = document.querySelectorAll('.cards-3d .card');
+if (cards3d.length) {
+  scrubEach(cards3d,
+    { rotateY: 45, opacity: 0 },
+    '.cards-3d',
+    90, 50, 4
+  );
+}
+```
+
+### Depth Parallax (multi-layer scrub)
+
+```javascript
+// Shallow element (heading) — enters faster
+gsap.from('.scene h2', {
+  y: 40, opacity: 0,
+  scrollTrigger: { trigger: '.scene', start: 'top 85%', end: 'top 55%', scrub: 1 },
+});
+
+// Deep element (background shape) — enters slower
+gsap.from('.scene .bg-shape', {
+  y: 120, opacity: 0,
+  scrollTrigger: { trigger: '.scene', start: 'top 95%', end: 'top 30%', scrub: 1 },
+});
+```
+
+## Browser Notes
+
+- `transform-style: preserve-3d` has Safari quirks — test on iOS
+- Use `-webkit-backface-visibility: hidden` alongside standard for Safari
+- `will-change: transform` only on actively animating elements
+- Never use `transform-style: preserve-3d` inside a `filter: blur()` parent (compositing conflict)
+- `[data-tilt]` intensity: keep ±10deg max; high values look broken on mobile
+
+## Anti-Patterns
+
+- No `useSpring`, `motion.div`, or Framer Motion imports
+- No `rotation: 360` (dramatic spin) — subtle perspective shifts only
+- Do not apply both `[data-tilt]` and a GSAP scroll animation to the same element's transform

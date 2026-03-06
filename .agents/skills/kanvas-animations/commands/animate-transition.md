@@ -12,303 +12,224 @@ cost: medium
 
 # /animate-transition
 
-Create page transitions and route animations for seamless navigation experiences.
+Section recession, depth choreography, and scroll-based visual transitions for Kanvas.
 
-## Usage
-
-```
-/animate-transition <type> [options]
-```
-
-## Description
-
-The `/animate-transition` command sets up page-level transitions for React applications. It supports Next.js App Router, React Router, and other routing solutions with various transition styles.
-
-## Options
-
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--framework <fw>` | Framework (nextjs, react-router, remix) | auto-detect |
-| `--type <type>` | Transition type | fade |
-| `--duration <ms>` | Transition duration | 300 |
-| `--shared-elements` | Enable shared element transitions | false |
-| `--view-transitions` | Use View Transitions API | false |
+> **Hugo is a static site generator.** There are no routes, no `<Link>` components, no `AnimatePresence`, no `useRouter`. "Transitions" in Kanvas mean scroll-based section recession and depth choreography — not page-to-page navigation.
 
 ## Transition Types
 
-| Type | Description |
-|------|-------------|
-| `fade` | Cross-fade between pages |
-| `slide` | Slide pages left/right |
-| `slide-up` | Slide pages up/down |
-| `scale` | Scale in/out |
-| `morph` | Morph with shared elements |
-| `flip` | 3D flip transition |
-| `blur` | Blur transition |
-| `none` | Instant (for comparison) |
+| Type | Technique | Use case |
+|------|-----------|----------|
+| `hero-recession` | GSAP scrub on `.hero-recession` wrapper | Hero exits as user scrolls down |
+| `section-recession` | GSAP scrub opacity + y on section | Section fades into past as next enters |
+| `blur-recession` | Add `filter: blur(8px)` to recession | More dramatic exit (max 8px GPU budget) |
+| `gradient-divider` | SCSS line + `scaleX` scrub | Visual separator between sections |
+| `depth-layers` | Scrub at different start/end per layer | 3-depth parallax within one section |
+| `orb-drift` | Ambient orbs drift with full-page scroll | Background depth cue across all sections |
+| `cross-handoff` | Section A recedes as Section B enters | Coordinated two-section choreography |
 
-## Examples
+## Patterns
 
-```bash
-# Basic fade transition
-/animate-transition fade
+### Hero Recession (canonical)
 
-# Slide transitions with direction
-/animate-transition slide --direction right
+```javascript
+// ⚠️ Always target .hero-recession — NOT #hero
+// hero-glass.js owns #hero's transform for 3D tilt.
+// Targeting #hero directly causes tilt+recession transform conflicts.
 
-# Next.js App Router setup
-/animate-transition --framework nextjs slide-up
-
-# Enable shared element transitions
-/animate-transition morph --shared-elements
-
-# Use native View Transitions API
-/animate-transition --view-transitions
-
-# Custom duration
-/animate-transition fade --duration 500
+// In initScrollAnimations()
+const heroRecession = document.querySelector('.hero-recession');
+if (heroRecession) {
+  gsap.to(heroRecession, {
+    opacity: 0,
+    y: -60,
+    scrollTrigger: {
+      trigger: heroRecession,
+      start: 'bottom 80%',
+      end:   'bottom 10%',
+      scrub: 1,
+    },
+  });
+}
 ```
 
-## Generated Code Examples
+### Generic Section Recession
 
-### Next.js App Router
-```tsx
-// app/template.tsx
-'use client';
+```javascript
+// In initScrollAnimations()
+function addRecession(selector, yDist = -40) {
+  const section = document.querySelector(selector);
+  if (!section) return;
+  gsap.to(section, {
+    opacity: 0,
+    y: yDist,
+    scrollTrigger: {
+      trigger: section,
+      start: 'bottom 75%',
+      end:   'bottom 15%',
+      scrub: 1,
+    },
+  });
+}
 
-import { motion, AnimatePresence } from 'framer-motion';
-import { usePathname } from 'next/navigation';
+addRecession('.demo-section');
+addRecession('.features-section');
+```
 
-const pageVariants = {
-  initial: { opacity: 0, x: 20 },
-  animate: { opacity: 1, x: 0 },
-  exit: { opacity: 0, x: -20 },
-};
+### Blur Recession (max 8px — GPU budget)
 
-const pageTransition = {
-  type: 'tween',
-  ease: [0.25, 0.1, 0.25, 1],
-  duration: 0.3,
-};
+```javascript
+// Full-section blur during exit — scrub-linked, must stay ≤ 8px
+gsap.to('.my-section', {
+  opacity: 0,
+  y: -40,
+  filter: 'blur(8px)',
+  scrollTrigger: {
+    trigger: '.my-section',
+    start: 'bottom 75%',
+    end:   'bottom 15%',
+    scrub: 1,
+  },
+});
+```
 
-export default function Template({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
+### Gradient Divider (between sections)
 
-  return (
-    <AnimatePresence mode="wait" initial={false}>
-      <motion.div
-        key={pathname}
-        variants={pageVariants}
-        initial="initial"
-        animate="animate"
-        exit="exit"
-        transition={pageTransition}
-      >
-        {children}
-      </motion.div>
-    </AnimatePresence>
+```html
+<!-- Hugo partial — placed between section partials in layouts -->
+<div class="section-divider" aria-hidden="true"></div>
+```
+
+```scss
+// In assets/scss/_dividers.scss
+.section-divider {
+  height: 1px;
+  margin: 0 auto;
+  max-width: 800px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba($primary, 0.25) 30%,
+    rgba($primary, 0.4)  50%,
+    rgba($primary, 0.25) 70%,
+    transparent 100%
   );
+  transform-origin: center;
 }
 ```
 
-### React Router
-```tsx
-// components/PageTransition.tsx
-import { motion, AnimatePresence } from 'framer-motion';
-import { useLocation, Routes, Route } from 'react-router-dom';
-
-const pageVariants = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -20 },
-};
-
-export function AnimatedRoutes() {
-  const location = useLocation();
-
-  return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        <Route
-          path="/"
-          element={
-            <motion.div
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              transition={{ duration: 0.3 }}
-            >
-              <HomePage />
-            </motion.div>
-          }
-        />
-        {/* More routes */}
-      </Routes>
-    </AnimatePresence>
-  );
-}
+```javascript
+// In initScrollAnimations()
+document.querySelectorAll('.section-divider').forEach(divider => {
+  gsap.from(divider, {
+    scaleX: 0.2,
+    opacity: 0,
+    scrollTrigger: {
+      trigger: divider,
+      start: 'top 90%',
+      end:   'top 60%',
+      scrub: 1,
+    },
+  });
+});
 ```
 
-### Shared Element Transitions
-```tsx
-// pages/Gallery.tsx
-import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+### Depth Layering System (4 layers)
 
-function GalleryPage({ images }) {
-  return (
-    <div className="grid grid-cols-3 gap-4">
-      {images.map((image) => (
-        <Link key={image.id} to={`/image/${image.id}`}>
-          <motion.img
-            layoutId={`image-${image.id}`}
-            src={image.thumbnail}
-            className="w-full h-48 object-cover rounded-lg"
-          />
-        </Link>
-      ))}
-    </div>
-  );
-}
+```javascript
+// In initScrollAnimations() — apply to any section
+const trigger = '.my-section';
 
-// pages/ImageDetail.tsx
-function ImageDetailPage({ image }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
-      <motion.img
-        layoutId={`image-${image.id}`}
-        src={image.fullSize}
-        className="w-full h-auto"
-      />
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-      >
-        <h1>{image.title}</h1>
-        <p>{image.description}</p>
-      </motion.div>
-    </motion.div>
-  );
-}
+// Layer 0: badges / labels (shallowest)
+const badges = document.querySelectorAll(`${trigger} .badge`);
+if (badges.length) scrubEach(badges, { opacity: 0, y: 20 }, trigger, 86, 56, 3);
+
+// Layer 1: headings
+const h2 = document.querySelector(`${trigger} h2`);
+if (h2) gsap.from(h2, { opacity: 0, y: 40, scrollTrigger: { trigger, start: 'top 82%', end: 'top 52%', scrub: 1 } });
+
+// Layer 2: body text / cards
+scrubEach(document.querySelectorAll(`${trigger} .card`), { opacity: 0, y: 60 }, trigger, 80, 40, 5);
+
+// Layer 3: decorative (deepest — slowest entrance)
+const bg = document.querySelector(`${trigger} .bg-accent`);
+if (bg) gsap.from(bg, { opacity: 0, y: 100, scrollTrigger: { trigger, start: 'top 92%', end: 'top 28%', scrub: 1 } });
 ```
 
-### View Transitions API
-```tsx
-// hooks/useViewTransition.ts
-import { useRouter } from 'next/navigation';
-import { useCallback } from 'react';
+### Ambient Orb Choreography
 
-export function useViewTransition() {
-  const router = useRouter();
+```javascript
+// In initScrollAnimations() — orbs drift in different directions
+const orbConfig = [
+  { sel: '.scroll-orb--1', y:  120, x:  40 },
+  { sel: '.scroll-orb--2', y: -100, x: -30 },
+  { sel: '.scroll-orb--3', y:   80, x:  60 },
+];
 
-  const navigate = useCallback((href: string) => {
-    if (!document.startViewTransition) {
-      router.push(href);
-      return;
-    }
-
-    document.startViewTransition(() => {
-      router.push(href);
-    });
-  }, [router]);
-
-  return { navigate };
-}
-
-// CSS for View Transitions
-// globals.css
-/*
-::view-transition-old(root) {
-  animation: fade-out 0.25s ease-out;
-}
-
-::view-transition-new(root) {
-  animation: fade-in 0.25s ease-in;
-}
-
-@keyframes fade-out {
-  to { opacity: 0; transform: scale(0.95); }
-}
-
-@keyframes fade-in {
-  from { opacity: 0; transform: scale(1.05); }
-}
-*/
+orbConfig.forEach(({ sel, y, x }) => {
+  const orb = document.querySelector(sel);
+  if (!orb) return;
+  gsap.to(orb, {
+    y, x,
+    scrollTrigger: {
+      trigger: document.body,
+      start:   'top top',
+      end:     'bottom bottom',
+      scrub:   1,
+    },
+  });
+});
 ```
 
-### Direction-Aware Transitions
-```tsx
-// hooks/useDirectionalTransition.ts
-import { useRef } from 'react';
-import { usePathname } from 'next/navigation';
+### Cross-Section Visual Handoff
 
-const routes = ['/', '/about', '/products', '/contact'];
-
-export function useDirectionalTransition() {
-  const pathname = usePathname();
-  const prevPathRef = useRef(pathname);
-
-  const currentIndex = routes.indexOf(pathname);
-  const prevIndex = routes.indexOf(prevPathRef.current);
-
-  const direction = currentIndex > prevIndex ? 1 : -1;
-
-  // Update ref after render
-  prevPathRef.current = pathname;
-
-  const variants = {
-    initial: { opacity: 0, x: 50 * direction },
-    animate: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -50 * direction },
-  };
-
-  return { variants, direction };
-}
-```
-
-## Transition Presets
-
-```typescript
-export const transitionPresets = {
-  fade: {
-    initial: { opacity: 0 },
-    animate: { opacity: 1 },
-    exit: { opacity: 0 },
-    transition: { duration: 0.3 },
+```javascript
+// Section A recedes as Section B enters — coordinated handoff
+gsap.to('.section-a', {
+  opacity: 0,
+  y: -50,
+  scrollTrigger: {
+    trigger: '.section-b',
+    start: 'top 90%',
+    end:   'top 50%',
+    scrub: 1,
   },
-  slideRight: {
-    initial: { opacity: 0, x: 100 },
-    animate: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -100 },
-    transition: { type: 'spring', stiffness: 300, damping: 30 },
+});
+
+gsap.from('.section-b .content', {
+  opacity: 0,
+  y: 40,
+  scrollTrigger: {
+    trigger: '.section-b',
+    start: 'top 80%',
+    end:   'top 40%',
+    scrub: 1,
   },
-  slideUp: {
-    initial: { opacity: 0, y: 50 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -50 },
-    transition: { duration: 0.3, ease: [0.25, 0.1, 0.25, 1] },
-  },
-  scale: {
-    initial: { opacity: 0, scale: 0.95 },
-    animate: { opacity: 1, scale: 1 },
-    exit: { opacity: 0, scale: 1.05 },
-    transition: { duration: 0.25 },
-  },
-  blur: {
-    initial: { opacity: 0, filter: 'blur(10px)' },
-    animate: { opacity: 1, filter: 'blur(0px)' },
-    exit: { opacity: 0, filter: 'blur(10px)' },
-    transition: { duration: 0.3 },
-  },
-};
+});
 ```
 
-## Author
+## Anti-Patterns
 
-Created by Brookside BI as part of React Animation Studio
+| Wrong | Why |
+|-------|-----|
+| `AnimatePresence` from 'framer-motion' | Framer Motion not in stack — Hugo is static |
+| `useRouter`, `usePathname`, `useLocation` | No client-side routing |
+| Animate `#hero` directly | hero-glass.js owns that transform; use `.hero-recession` |
+| `pin: true` on sections | Breaks Kanvas's continuous scroll feel |
+| `filter: blur()` > 8px on scrub-linked recession | GPU budget exceeded on mid-range devices |
+| Recession + `scrubEach()` entrance on same element | Competing triggers cause stuck states |
+| `stagger` with `scrub` | Use `scrubEach()` instead |
+
+## Blur Budget Reference
+
+| Context | Max blur |
+|---------|----------|
+| Ambient orbs (`.scroll-orb--*`) | `blur(70px)` |
+| Full-section blur recession | `blur(8px)` |
+| Glass cards (`backdrop-filter`) | `blur(24px)` |
+
+## Related Commands
+
+- `/animate-scroll` — Full scrubEach reference
+- `/animate-sequence` — Above-fold hero entrance timeline
+- `/animate-effects` — Shimmer, glow, aurora effects

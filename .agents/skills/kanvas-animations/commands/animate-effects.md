@@ -12,172 +12,154 @@ cost: medium
 
 # /animate-effects Command
 
-Create artistic and experimental visual effects including morphing shapes, glitch effects, liquid animations, magnetic interactions, and creative loaders.
+Create creative visual effects for the Kanvas site: glitch text, clip-path reveals, shimmer overlays, magnetic hover, animated borders. SCSS + vanilla JS + GSAP — no React.
 
 ## Usage
 
 ```
-/animate-effects <type> [options]
+/animate-effects <type> [target]
 ```
 
 ## Effect Types
 
-| Type | Description |
-|------|-------------|
-| `morph` | Morphing blob/shape animations |
-| `glitch` | Retro glitch/distortion effects |
-| `liquid` | Liquid/fluid button fills |
-| `magnetic` | Magnetic cursor attraction |
-| `elastic` | Elastic/bouncy containers |
-| `reveal` | Creative reveal animations |
-| `loader` | Artistic loading animations |
-| `sparkle` | Sparkle/shimmer decorations |
-| `glow` | Pulsing glow effects |
-| `border` | Animated gradient borders |
-
-## Options
-
-- `--intensity <low|medium|high>` - Effect strength
-- `--colors <colors>` - Comma-separated color values
-- `--duration <number>` - Animation duration in seconds
-- `--trigger <hover|click|auto|scroll>` - Activation trigger
-- `--interactive` - Enable mouse/cursor interaction
+| Type | Implementation |
+|------|---------------|
+| `glitch` | CSS `::before`/`::after` + `clip-path` + `data-text` attribute |
+| `shimmer` | CSS `::after` pseudo-element with `@keyframes shimmer` |
+| `clip-reveal` | CSS `clip-path: inset()` transition or GSAP scrub |
+| `curtain` | Two-panel GSAP `scaleY` scrub reveal |
+| `magnetic` | Vanilla JS `mousemove` + GSAP `elastic.out` |
+| `glow-pulse` | CSS `@keyframes` `filter: drop-shadow()` |
+| `animated-border` | CSS `@keyframes borderShift` on `border-color`/`box-shadow` |
+| `scroll-cube` | `initScrollCube()` pattern — SVG piece scatter + GSAP scrub reassembly |
 
 ## Examples
 
-### Morphing Blob
 ```
-/animate-effects morph --colors "#667eea,#764ba2" --duration 8
-```
-
-Generates:
-```tsx
-<MorphingBlob
-  colors={['#667eea', '#764ba2']}
-  duration={8}
-/>
+/animate-effects glitch .hero-title
+/animate-effects shimmer .feature-card
+/animate-effects magnetic .btn-primary
+/animate-effects clip-reveal .reveal-card
+/animate-effects glow-pulse .cta-badge
 ```
 
-### Glitch Text Effect
-```
-/animate-effects glitch --intensity medium --trigger hover
-```
+## Pattern: Glitch Text (CSS only)
 
-Generates:
-```tsx
-<GlitchText trigger="hover">
-  GLITCH
-</GlitchText>
+```html
+<span class="glitch" data-text="{{ .Title }}">{{ .Title }}</span>
 ```
 
-### Liquid Fill Button
-```
-/animate-effects liquid --colors "#667eea" --trigger hover
-```
+```scss
+.glitch {
+    position: relative;
 
-Generates:
-```tsx
-<LiquidButton color="#667eea">
-  Click Me
-</LiquidButton>
-```
+    &::before,
+    &::after {
+        content: attr(data-text);
+        position: absolute;
+        inset: 0;
+    }
 
-### Magnetic Button
-```
-/animate-effects magnetic --intensity high
-```
+    &::before {
+        color: rgba($primary, 0.8);
+        clip-path: inset(40% 0 61% 0);
+        animation: glitchTop 2s infinite linear;
+    }
 
-Generates:
-```tsx
-<MagneticButton intensity={0.5}>
-  Hover Me
-</MagneticButton>
-```
+    &::after {
+        color: rgba(255, 255, 255, 0.8);
+        clip-path: inset(85% 0 7% 0);
+        animation: glitchBottom 2s infinite linear;
+    }
+}
 
-### Sparkle Wrapper
-```
-/animate-effects sparkle --colors "#FFC700,#FF6B6B,#4ECDC4"
-```
-
-Generates:
-```tsx
-<SparkleWrapper sparkleCount={5}>
-  <span>Magical Text</span>
-</SparkleWrapper>
+@keyframes glitchTop {
+    0%,  90%  { transform: translateX(0); }
+    91%        { transform: translateX(-2px); clip-path: inset(40% 0 61% 0); }
+    93%        { transform: translateX(2px);  clip-path: inset(15% 0 80% 0); }
+    95%        { transform: translateX(-1px); clip-path: inset(70% 0 25% 0); }
+    100%       { transform: translateX(0);   clip-path: inset(40% 0 61% 0); }
+}
 ```
 
-### Rainbow Glow Border
-```
-/animate-effects border --type rainbow
-```
+## Pattern: Shimmer Overlay (CSS only)
 
-Generates:
-```tsx
-<RainbowGlowBorder>
-  <Card>Content</Card>
-</RainbowGlowBorder>
-```
+```scss
+.shimmer-card {
+    position: relative;
+    overflow: hidden;
 
-### Creative Loader - DNA Helix
-```
-/animate-effects loader --type dna --colors "#667eea,#764ba2"
-```
+    &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+            105deg,
+            transparent 40%,
+            rgba(255, 255, 255, 0.06) 50%,
+            transparent 60%
+        );
+        background-size: 200% 100%;
+        animation: shimmer 2.5s linear infinite;
+        pointer-events: none;
+    }
+}
 
-### Creative Loader - Orbiting Dots
-```
-/animate-effects loader --type orbit --duration 2
-```
-
-### Mask Reveal
-```
-/animate-effects reveal --type mask --trigger scroll
-```
-
-### Split Reveal
-```
-/animate-effects reveal --type split --direction horizontal
+@keyframes shimmer {
+    0%   { background-position: -200% center; }
+    100% { background-position:  200% center; }
+}
 ```
 
-## Effect Categories
+## Pattern: Magnetic Hover (vanilla JS)
 
-### Decorative Accents
-- `sparkle` - Random sparkle animations
-- `glow` - Pulsing glow effects
-- `shimmer` - Shimmer highlight sweep
-- `border` - Animated gradient borders
+```js
+// main.js or inline
+document.querySelectorAll('[data-magnetic]').forEach(el => {
+    el.addEventListener('mousemove', e => {
+        const rect = el.getBoundingClientRect();
+        const relX = (e.clientX - rect.left) / rect.width  - 0.5;
+        const relY = (e.clientY - rect.top)  / rect.height - 0.5;
+        gsap.to(el, { x: relX * 12, y: relY * 8, duration: 0.3, ease: 'power2.out' });
+    });
+    el.addEventListener('mouseleave', () => {
+        gsap.to(el, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1, 0.5)' });
+    });
+});
+```
 
-### Interactive Effects
-- `magnetic` - Cursor attraction
-- `elastic` - Bouncy containers
-- `liquid` - Fluid fills
+```html
+<button class="btn-primary" data-magnetic>Get Started</button>
+```
 
-### Artistic Effects
-- `morph` - Shape morphing
-- `glitch` - Digital distortion
-- `reveal` - Creative reveals
+## Pattern: GSAP Clip-Path Reveal (scrub)
 
-### Loading States
-- `loader` - Creative loading animations (dna, orbit, pulse, bounce)
+```js
+gsap.fromTo('.reveal-card',
+    { clipPath: 'inset(0 100% 0 0)' },
+    {
+        clipPath: 'inset(0 0% 0 0)',
+        scrollTrigger: { trigger: '.reveal-card', start: 'top 85%', end: 'top 50%', scrub: 1 },
+    }
+);
+```
 
-## Output
+## Pattern: Glow Pulse (CSS only)
 
-The command generates:
-1. **React Component** - Complete effect component
-2. **TypeScript Types** - Full prop definitions
-3. **Animation Logic** - Framer Motion or CSS animations
-4. **Performance Notes** - Optimization tips
+```scss
+.glow-badge {
+    animation: shadowPulse 3s ease-in-out infinite;
+}
 
-## Best Practices
+@keyframes shadowPulse {
+    0%, 100% { box-shadow: 0 0 10px rgba($primary, 0.2); }
+    50%       { box-shadow: 0 0 30px rgba($primary, 0.5); }
+}
+```
 
-- Use sparingly - too many effects can overwhelm users
-- Respect `prefers-reduced-motion` for accessibility
-- Test performance on lower-end devices
-- Ensure effects don't interfere with usability
-- Provide fallbacks for browsers without support
+## Anti-Patterns
 
-## Related Commands
-
-- `/animate-background` - Full-page background animations
-- `/animate-text` - Text-specific animations
-- `/animate-3d` - 3D transform effects
-- `/animate-audit` - Performance analysis
+- `rotation: 360` continuous spin — too dramatic
+- `filter: blur()` animated every frame — expensive
+- Inline `style="..."` on HTML elements — all effects belong in SCSS
+- Canvas-based particle systems — no bundler to load canvas libs

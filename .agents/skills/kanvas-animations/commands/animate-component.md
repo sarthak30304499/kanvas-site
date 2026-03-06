@@ -12,164 +12,100 @@ cost: medium
 
 # /animate-component
 
-Add animations to existing React components with intelligent analysis and seamless integration.
+Add GSAP/CSS animations to an existing Hugo partial or static JS component. Analyzes the current HTML structure and inserts correct `scrubEach()` calls, CSS transitions, or keyframe animations.
 
 ## Usage
 
 ```
-/animate-component <component-path> [animation-description]
+/animate-component <partial-path> [animation-description]
 ```
-
-## Description
-
-The `/animate-component` command analyzes an existing React component and adds animations while preserving the component's structure and functionality. It intelligently identifies animation opportunities and applies best practices.
-
-## Options
-
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--type <type>` | Animation type: entrance, exit, hover, gesture, scroll | auto-detect |
-| `--library <lib>` | Animation library to use | framer-motion |
-| `--preserve-props` | Keep all existing props unchanged | true |
-| `--dry-run` | Preview changes without modifying file | false |
 
 ## Workflow
 
-1. **Analyze Component** - Parse component structure and identify elements
-2. **Detect Opportunities** - Find animatable elements and interactions
-3. **Suggest Animations** - Propose appropriate animations
-4. **Apply Changes** - Add animation code while preserving functionality
-5. **Validate** - Ensure TypeScript types and imports are correct
+1. **Read the partial** — identify animatable elements (badge, title, subtitle, cards, icons)
+2. **Classify trigger** — scroll entrance, hover state, page-load, or ambient loop
+3. **Generate SCSS** — transitions and keyframes in the section's SCSS file
+4. **Generate JS** — `scrubEach()` block inside `initScrollAnimations()` in `main.js`
+5. **Check conventions** — scrub-based for below-fold, `$primary` not `#00b39f`
 
 ## Examples
 
 ```bash
-# Add entrance animation to a card component
-/animate-component src/components/Card.tsx add fade-in entrance
+# Add scroll entrance to a features section partial
+/animate-component layouts/partials/section/features.html scroll entrance for cards
 
-# Add hover effects
-/animate-component src/components/Button.tsx --type hover
+# Add hover lift to a pricing card
+/animate-component layouts/partials/section/pricing.html hover lift on .pricing-card
 
-# Add scroll-triggered animations
-/animate-component src/components/Section.tsx --type scroll reveal on scroll
-
-# Preview changes first
-/animate-component src/components/Modal.tsx --dry-run add slide-up entrance
+# Add ambient float to hero icons
+/animate-component layouts/partials/section/hero.html floating icons
 ```
 
-## Analysis Capabilities
+## What the Command Produces
 
-The command analyzes:
+### For a scroll entrance on cards
 
-**Component Structure:**
-- Wrapper elements (divs, sections)
-- Interactive elements (buttons, links)
-- List items and children
-- Conditional renders
-
-**Existing Animations:**
-- Current animation implementations
-- CSS transitions/animations
-- Potential conflicts
-
-**Props and State:**
-- Visibility toggles (isOpen, isVisible)
-- Loading states
-- Active/selected states
-
-## Transformation Examples
-
-### Before
-```tsx
-function Card({ title, children }: CardProps) {
-  return (
-    <div className="rounded-xl bg-white shadow-md p-6">
-      <h3 className="text-xl font-bold">{title}</h3>
-      <div className="mt-4">{children}</div>
+Given a partial like:
+```html
+<!-- layouts/partials/section/features.html -->
+<section class="features-section">
+    <div class="features-header">
+        <span class="features-badge">Features</span>
+        <h2 class="features-title">...</h2>
     </div>
-  );
-}
-```
-
-### After (with entrance animation)
-```tsx
-import { motion } from 'framer-motion';
-
-function Card({ title, children }: CardProps) {
-  return (
-    <motion.div
-      className="rounded-xl bg-white shadow-md p-6"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
-    >
-      <h3 className="text-xl font-bold">{title}</h3>
-      <div className="mt-4">{children}</div>
-    </motion.div>
-  );
-}
-```
-
-### Before (Modal)
-```tsx
-function Modal({ isOpen, onClose, children }: ModalProps) {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black/50">
-      <div className="bg-white rounded-xl p-6">
-        {children}
-      </div>
+    <div class="features-grid">
+        <div class="feature-card">...</div>
+        <div class="feature-card">...</div>
+        <div class="feature-card">...</div>
     </div>
-  );
+</section>
+```
+
+Adds to `main.js` inside `initScrollAnimations()`:
+```js
+const featuresSection = document.querySelector('.features-section');
+if (featuresSection) {
+    const headerEls = [
+        featuresSection.querySelector('.features-badge'),
+        featuresSection.querySelector('.features-title'),
+    ].filter(Boolean);
+    scrubEach(headerEls, { y: 40, opacity: 0 }, featuresSection, 88, 50, 4);
+
+    const cards = featuresSection.querySelectorAll('.feature-card');
+    scrubEach(cards, { y: 60, opacity: 0 }, '.features-grid', 90, 45, 3);
 }
 ```
 
-### After (with enter/exit animations)
-```tsx
-import { AnimatePresence, motion } from 'framer-motion';
+### For hover lift on a card
 
-function Modal({ isOpen, onClose, children }: ModalProps) {
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          className="fixed inset-0 bg-black/50"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-        >
-          <motion.div
-            className="bg-white rounded-xl p-6"
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            onClick={e => e.stopPropagation()}
-          >
-            {children}
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
+Adds to `_features.scss`:
+```scss
+.feature-card {
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+    &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    }
 }
 ```
 
-## Smart Detection
+## Animation Opportunity Detection
 
-The command automatically detects and suggests:
+| Pattern in HTML | Suggested animation |
+|----------------|---------------------|
+| `.badge` or `.pill` | `scrubEach` entrance (first to enter, shallowest y) |
+| `h1`, `h2`, `.title` | `scrubEach` entrance (medium y) |
+| `.subtitle`, `p.lead` | `scrubEach` entrance (deepest y) |
+| `.card`, `.grid-item` | `scrubEach` per-card stagger |
+| `svg`, `.icon` | `scrubEach` with `scale: 0.7` + `opacity: 0` |
+| `.btn-primary`, `.cta` | Hover scale + `cubic-bezier(0.16, 1, 0.3, 1)` |
+| Section bottom | Recession: `gsap.to(section, { opacity: 0.5, y: -20 })` |
 
-| Pattern | Suggested Animation |
-|---------|---------------------|
-| `isOpen` prop | Enter/exit with AnimatePresence |
-| `isLoading` state | Skeleton or spinner transition |
-| Button element | Hover scale + tap feedback |
-| List/grid of items | Staggered entrance |
-| Card component | Hover lift effect |
-| Modal/dialog | Backdrop fade + content slide |
+## Rules
 
-## Author
-
-Created by Brookside BI as part of React Animation Studio
+- Never animate `#hero` transform from `main.js` — use `.hero-recession` wrapper
+- Below-fold content always `scrub: 1` — no `once: true`
+- Hover states belong in SCSS, not GSAP event listeners (unless magnetic/elastic)
+- Cards get `scrubEach` stagger; never `stagger` prop inside `gsap.from()`

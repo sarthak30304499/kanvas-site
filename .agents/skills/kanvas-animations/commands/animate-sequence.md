@@ -12,271 +12,102 @@ cost: medium
 
 # /animate-sequence
 
-Create choreographed animation sequences with precise timing and orchestration.
+GSAP `timeline()` for above-fold page-load choreography in Kanvas.
 
-## Usage
+> **Scope:** Sequences are for **above-fold only** (header, hero). Below-fold elements
+> must use `scrubEach()` instead. Sequences run in `DOMContentLoaded`, not in
+> `initScrollAnimations()`.
 
-```
-/animate-sequence <description>
-```
+## When to Use a Sequence
 
-## Description
+| Situation | Use |
+|-----------|-----|
+| Header logo + nav entrance | Timeline (above-fold) |
+| Hero headline + CTA reveal | Timeline (above-fold) |
+| Cards entering on scroll | `scrubEach()` (below-fold) |
+| Section heading on scroll | Individual `gsap.from()` with scrub |
+| Looping decoration | CSS `@keyframes` |
 
-The `/animate-sequence` command creates complex, multi-step animation sequences with precise timing control. It generates timeline-based animations that coordinate multiple elements.
+## Patterns
 
-## Options
+### Header Entrance
+```javascript
+// In DOMContentLoaded — NOT inside initScrollAnimations()
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--library <lib>` | Animation library (framer-motion, gsap) | framer-motion |
-| `--output <path>` | Output file path | clipboard |
-| `--duration <ms>` | Total sequence duration | auto |
-| `--stagger <ms>` | Default stagger between items | 100 |
-| `--loop` | Make sequence loop | false |
-| `--reverse` | Play in reverse | false |
+  const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
-## Workflow
-
-1. **Parse Sequence** - Break down the animation description
-2. **Build Timeline** - Create ordered animation steps
-3. **Calculate Timing** - Determine delays and overlaps
-4. **Generate Code** - Output timeline code
-5. **Add Controls** - Include play/pause/restart controls
-
-## Examples
-
-```bash
-# Simple sequence
-/animate-sequence logo fades in, then title slides up, then subtitle fades in
-
-# Staggered items
-/animate-sequence navigation items drop in from top one by one
-
-# Complex choreography
-/animate-sequence "hero image zooms in, headline types out, CTA button bounces in after 1 second"
-
-# With timing
-/animate-sequence --duration 3000 "background fades, card flips, content reveals"
-
-# Looping sequence
-/animate-sequence --loop "dot pulses, moves right, pulses, moves down, repeats"
+  tl.from('.site-header .logo',    { opacity: 0, y: -20, duration: 0.5 })
+    .from('.site-header nav a',    { opacity: 0, y: -10, duration: 0.3, stagger: 0.06 }, '-=0.2')
+    .from('.site-header .cta-btn', { opacity: 0, scale: 0.9, duration: 0.3 }, '-=0.1');
+});
 ```
 
-## Sequence Syntax
+### Hero Entrance
+```javascript
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-The command understands natural timing language:
+  const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
-**Timing Keywords:**
-- `then` - After previous completes
-- `after X seconds` - Specific delay
-- `with` / `simultaneously` - At the same time
-- `while` - Overlapping duration
-- `finally` - Last in sequence
-
-**Examples:**
-- "A fades in, then B slides up" (sequential)
-- "A and B fade in together" (simultaneous)
-- "A fades in, B slides up after 0.5 seconds" (delayed)
-- "While A expands, B rotates" (parallel)
-
-## Generated Code Examples
-
-### Sequential Animation
-```tsx
-import { motion, useAnimation } from 'framer-motion';
-
-function SequenceAnimation() {
-  const controls = useAnimation();
-
-  async function playSequence() {
-    // Step 1: Logo fades in
-    await controls.start('logoVisible');
-    // Step 2: Title slides up
-    await controls.start('titleVisible');
-    // Step 3: Subtitle fades in
-    await controls.start('subtitleVisible');
-  }
-
-  useEffect(() => {
-    playSequence();
-  }, []);
-
-  return (
-    <div>
-      <motion.div
-        variants={{
-          logoHidden: { opacity: 0 },
-          logoVisible: { opacity: 1, transition: { duration: 0.5 } },
-        }}
-        initial="logoHidden"
-        animate={controls}
-      >
-        Logo
-      </motion.div>
-      <motion.h1
-        variants={{
-          titleHidden: { opacity: 0, y: 30 },
-          titleVisible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-        }}
-        initial="titleHidden"
-        animate={controls}
-      >
-        Title
-      </motion.h1>
-      <motion.p
-        variants={{
-          subtitleHidden: { opacity: 0 },
-          subtitleVisible: { opacity: 1, transition: { duration: 0.4 } },
-        }}
-        initial="subtitleHidden"
-        animate={controls}
-      >
-        Subtitle
-      </motion.p>
-    </div>
-  );
-}
+  heroTl
+    .from('#hero .badge',       { opacity: 0, y: 20, duration: 0.4 })
+    .from('#hero h1',           { opacity: 0, y: 30, duration: 0.5 }, '-=0.1')
+    .from('#hero .subtitle',    { opacity: 0, y: 20, duration: 0.4 }, '-=0.2')
+    .from('#hero .cta-group',   { opacity: 0, y: 20, duration: 0.35 }, '-=0.15')
+    .from('#hero .hero-visual', { opacity: 0, scale: 0.97, duration: 0.5 }, '-=0.3');
+});
 ```
 
-### GSAP Timeline
-```typescript
-import gsap from 'gsap';
-import { useGSAP } from '@gsap/react';
+### Combined Header + Hero
+```javascript
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-function GSAPSequence() {
-  const containerRef = useRef(null);
+  const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
-  useGSAP(() => {
-    const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
-
-    tl.from('.logo', { opacity: 0, duration: 0.5 })
-      .from('.title', { opacity: 0, y: 30, duration: 0.5 }, '-=0.2')
-      .from('.subtitle', { opacity: 0, duration: 0.4 }, '-=0.1');
-  }, { scope: containerRef });
-
-  return (
-    <div ref={containerRef}>
-      <div className="logo">Logo</div>
-      <h1 className="title">Title</h1>
-      <p className="subtitle">Subtitle</p>
-    </div>
-  );
-}
+  // Header first
+  tl.from('.site-header', { opacity: 0, y: -10, duration: 0.4 })
+  // Then hero staggered
+    .from('#hero .badge',     { opacity: 0, y: 20, duration: 0.4 }, '-=0.1')
+    .from('#hero h1',         { opacity: 0, y: 30, duration: 0.5 }, '-=0.2')
+    .from('#hero .subtitle',  { opacity: 0, y: 20, duration: 0.4 }, '-=0.2')
+    .from('#hero .cta-group', { opacity: 0, y: 15, duration: 0.35 }, '-=0.15');
+});
 ```
 
-### Staggered Sequence
-```tsx
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
-    },
-  },
-};
+## Timing Syntax
 
-const itemVariants = {
-  hidden: { opacity: 0, y: -20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      type: 'spring',
-      stiffness: 300,
-      damping: 25,
-    },
-  },
-};
+| Syntax | Meaning |
+|--------|---------|
+| `'-=0.2'` | Start 0.2s before previous ends (overlap) |
+| `'+=0.1'` | Start 0.1s after previous ends (gap) |
+| `'<'` | Start at same time as previous |
+| `'<0.1'` | Start 0.1s after previous started |
 
-function StaggeredNav({ items }) {
-  return (
-    <motion.nav
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      {items.map((item, i) => (
-        <motion.a key={i} variants={itemVariants}>
-          {item.label}
-        </motion.a>
-      ))}
-    </motion.nav>
-  );
-}
+## Stagger Within Timeline
+
+Stagger is fine inside a `timeline()` because it's time-based (no `scrub` conflict):
+
+```javascript
+tl.from('nav a', { opacity: 0, y: -10, stagger: 0.06, duration: 0.3 });
 ```
 
-## Sequence Building Blocks
+This is safe because it's above-fold and not scrub-linked.
 
-### Entrance Choreography
-```tsx
-const entranceSequence = {
-  container: {
-    hidden: {},
-    visible: {
-      transition: {
-        staggerChildren: 0.1,
-        when: 'beforeChildren',
-      },
-    },
-  },
-  background: {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { duration: 0.3 } },
-  },
-  content: {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
-  },
-};
-```
+## Common Eases
 
-### Exit Choreography
-```tsx
-const exitSequence = {
-  container: {
-    visible: {},
-    exit: {
-      transition: {
-        staggerChildren: 0.05,
-        staggerDirection: -1, // Reverse order
-        when: 'afterChildren',
-      },
-    },
-  },
-  item: {
-    visible: { opacity: 1, scale: 1 },
-    exit: { opacity: 0, scale: 0.9, transition: { duration: 0.2 } },
-  },
-};
-```
+| Ease | Feel |
+|------|------|
+| `power3.out` | Snappy, modern — default for entrances |
+| `power2.out` | Slightly softer |
+| `back.out(1.4)` | Slight overshoot / bounce |
+| `none` | Linear — for counters, progress bars |
 
-## Sequence Hooks
+## Anti-Patterns
 
-Generate reusable sequence hooks:
-
-```typescript
-function useAnimationSequence() {
-  const controls = useAnimation();
-  const [isPlaying, setIsPlaying] = useState(false);
-
-  const play = useCallback(async () => {
-    setIsPlaying(true);
-    await controls.start('step1');
-    await controls.start('step2');
-    await controls.start('step3');
-    setIsPlaying(false);
-  }, [controls]);
-
-  const reset = useCallback(() => {
-    controls.start('initial');
-  }, [controls]);
-
-  return { controls, play, reset, isPlaying };
-}
-```
-
-## Author
-
-Created by Brookside BI as part of React Animation Studio
+- Never use `timeline()` for below-fold content — use `scrubEach()` instead
+- No `visibilitychange` listener to restart entrance timelines
+- No `rotation: 360` or dramatic entrance spins
+- Sequences should not depend on `ScrollTrigger` — they run immediately on load

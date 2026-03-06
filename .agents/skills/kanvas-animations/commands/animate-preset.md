@@ -12,196 +12,184 @@ cost: medium
 
 # /animate-preset
 
-Apply pre-built animation presets from a curated library of beautiful, tested animations.
+Apply a named Kanvas animation preset — production-tested GSAP + SCSS patterns tuned for the Kanvas design vision.
+
+> **Stack:** GSAP 3.13 + ScrollTrigger (CDN) + SCSS + vanilla JS. No React, no Framer Motion.
 
 ## Usage
 
 ```
-/animate-preset <preset-name> [target]
+/animate-preset <preset-name> [section-selector]
 ```
-
-## Description
-
-The `/animate-preset` command provides instant access to a library of production-tested animation presets. Each preset is optimized for performance, accessibility, and visual appeal.
-
-## Options
-
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--list` | Show all available presets | - |
-| `--category <cat>` | Filter presets by category | all |
-| `--preview` | Show preset animation details | false |
-| `--as-hook` | Generate as a custom hook | false |
-| `--as-variants` | Generate as Framer Motion variants | true |
 
 ## Available Presets
 
-### Entrance Animations
+| Preset | Type | Description |
+|--------|------|-------------|
+| `heading-entrance` | scroll scrub | Badge → title → subtitle staggered reveal |
+| `card-stagger` | scroll scrub | Grid of cards enter from below |
+| `hover-lift` | CSS | Lift + shadow on hover |
+| `hover-glow` | CSS | Primary color glow on hover |
+| `section-recession` | scroll scrub | Section fades + shifts up as user scrolls past |
+| `float` | CSS keyframe | Gentle vertical float loop |
+| `pulse-glow` | CSS keyframe | Pulsing primary-color shadow |
+| `shimmer` | CSS keyframe | Diagonal light sweep |
+| `gradient-text` | SCSS | Animated gradient text |
+| `counter` | JS + scroll | Number count-up on scroll |
+| `header-entrance` | GSAP timeline | Logo + nav items drop in (above-fold only) |
+| `hero-entrance` | GSAP timeline | Hero badge, h1, subtitle, CTA stagger (above-fold only) |
 
-| Preset | Description |
-|--------|-------------|
-| `fade-in` | Simple opacity fade |
-| `fade-in-up` | Fade with upward slide |
-| `fade-in-down` | Fade with downward slide |
-| `fade-in-left` | Fade with left slide |
-| `fade-in-right` | Fade with right slide |
-| `scale-in` | Grow from center |
-| `scale-in-center` | Pop from center with overshoot |
-| `slide-in-up` | Slide from below |
-| `slide-in-down` | Slide from above |
-| `slide-in-left` | Slide from left |
-| `slide-in-right` | Slide from right |
-| `flip-in-x` | 3D flip on X axis |
-| `flip-in-y` | 3D flip on Y axis |
-| `rotate-in` | Rotate while entering |
-| `bounce-in` | Bouncy entrance |
-| `zoom-in` | Zoom from small to full |
+## Preset Details
 
-### Exit Animations
-
-| Preset | Description |
-|--------|-------------|
-| `fade-out` | Simple opacity fade out |
-| `fade-out-up` | Fade while sliding up |
-| `fade-out-down` | Fade while sliding down |
-| `scale-out` | Shrink to nothing |
-| `slide-out-up` | Slide out upward |
-| `slide-out-down` | Slide out downward |
-
-### Attention Seekers
-
-| Preset | Description |
-|--------|-------------|
-| `pulse` | Gentle scale pulse |
-| `bounce` | Vertical bounce |
-| `shake` | Horizontal shake |
-| `wobble` | Playful wobble |
-| `swing` | Pendulum swing |
-| `rubber-band` | Elastic stretch |
-| `flash` | Flash opacity |
-| `heartbeat` | Double pulse like heartbeat |
-| `jello` | Jelly-like wobble |
-
-### Hover Effects
-
-| Preset | Description |
-|--------|-------------|
-| `hover-lift` | Lift with shadow |
-| `hover-scale` | Subtle grow |
-| `hover-glow` | Add glow effect |
-| `hover-tilt` | 3D tilt on hover |
-| `hover-underline` | Animated underline |
-| `hover-fill` | Background fill sweep |
-
-### Scroll Animations
-
-| Preset | Description |
-|--------|-------------|
-| `reveal-up` | Reveal from bottom on scroll |
-| `reveal-left` | Reveal from right on scroll |
-| `reveal-scale` | Scale up on scroll |
-| `parallax-slow` | Slow parallax movement |
-| `parallax-fast` | Fast parallax movement |
-
-### Micro-interactions
-
-| Preset | Description |
-|--------|-------------|
-| `button-press` | Button tap feedback |
-| `toggle-switch` | Toggle animation |
-| `checkbox-check` | Checkbox check animation |
-| `notification-pop` | Notification entrance |
-| `success-check` | Success checkmark draw |
-| `loading-dots` | Three dots loading |
-| `loading-spinner` | Circular spinner |
-
-## Examples
-
-```bash
-# List all presets
-/animate-preset --list
-
-# Preview a preset
-/animate-preset fade-in-up --preview
-
-# Apply preset to component
-/animate-preset hover-lift src/components/Card.tsx
-
-# Generate as hook
-/animate-preset bounce-in --as-hook
-
-# Filter by category
-/animate-preset --list --category hover
+### heading-entrance
+```javascript
+// Paste inside initScrollAnimations() in main.js
+const badge   = document.querySelector('.SECTION .badge');
+const title   = document.querySelector('.SECTION h2');
+const sub     = document.querySelector('.SECTION .subtitle');
+if (badge)  gsap.from(badge,  { opacity: 0, y: 20, scrollTrigger: { trigger: '.SECTION', start: 'top 85%', end: 'top 55%', scrub: 1 } });
+if (title)  gsap.from(title,  { opacity: 0, y: 40, scrollTrigger: { trigger: '.SECTION', start: 'top 80%', end: 'top 50%', scrub: 1 } });
+if (sub)    gsap.from(sub,    { opacity: 0, y: 30, scrollTrigger: { trigger: '.SECTION', start: 'top 78%', end: 'top 48%', scrub: 1 } });
 ```
 
-## Preset Code Examples
-
-### fade-in-up
-```tsx
-export const fadeInUp = {
-  initial: { opacity: 0, y: 20 },
-  animate: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] },
-  },
-  exit: { opacity: 0, y: -10, transition: { duration: 0.2 } },
-};
+### card-stagger
+```javascript
+const cards = document.querySelectorAll('.SECTION .card');
+if (cards.length) {
+  scrubEach(cards, { opacity: 0, y: 30 }, '.SECTION', 80, 40, 5);
+}
 ```
 
 ### hover-lift
-```tsx
-export const hoverLift = {
-  initial: { y: 0, boxShadow: '0 4px 6px rgba(0,0,0,0.1)' },
-  hover: {
-    y: -4,
-    boxShadow: '0 12px 24px rgba(0,0,0,0.15)',
-    transition: { duration: 0.2, ease: 'easeOut' },
-  },
-};
+```scss
+.card {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.2s ease;
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+  }
+}
 ```
 
-### bounce-in
-```tsx
-export const bounceIn = {
-  initial: { opacity: 0, scale: 0.3 },
-  animate: {
-    opacity: 1,
-    scale: 1,
-    transition: {
-      type: 'spring',
-      stiffness: 300,
-      damping: 15,
+### hover-glow
+```scss
+.btn {
+  transition: box-shadow 0.25s ease;
+  &:hover {
+    box-shadow: 0 0 0 3px rgba($primary, 0.35),
+                0 4px 20px rgba($primary, 0.2);
+  }
+}
+```
+
+### section-recession
+```javascript
+const section = document.querySelector('.SECTION');
+if (section) {
+  gsap.to(section, {
+    opacity: 0, y: -40,
+    scrollTrigger: { trigger: section, start: 'bottom 70%', end: 'bottom 20%', scrub: 1 },
+  });
+}
+```
+
+### float
+```scss
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+.ELEMENT { animation: float 3s ease-in-out infinite; }
+```
+
+### pulse-glow
+```scss
+@keyframes shadowPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba($primary, 0); }
+  50%       { box-shadow: 0 0 20px 4px rgba($primary, 0.25); }
+}
+.ELEMENT { animation: shadowPulse 2.5s ease-in-out infinite; }
+```
+
+### shimmer
+```scss
+.ELEMENT {
+  position: relative;
+  overflow: hidden;
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.12) 50%, transparent 60%);
+    background-size: 200% 100%;
+    animation: shimmerMove 2s linear infinite;
+    pointer-events: none;
+  }
+}
+@keyframes shimmerMove {
+  from { background-position: -200% 0; }
+  to   { background-position:  200% 0; }
+}
+```
+
+### gradient-text
+```scss
+.ELEMENT {
+  background: linear-gradient(135deg, $primary 0%, lighten($primary, 20%) 50%, $primary 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 4s ease-in-out infinite;
+}
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+```
+
+### counter
+```html
+<span class="counter" data-count="1000" data-suffix="+" aria-label="Over 1000 users"></span>
+```
+```javascript
+// Fires once when element enters viewport (counters are exempt from scrub rule)
+document.querySelectorAll('.counter[data-count]').forEach(el => {
+  const target = +el.dataset.count;
+  const suffix = el.dataset.suffix || '';
+  ScrollTrigger.create({
+    trigger: el,
+    start: 'top 85%',
+    once: true,
+    onEnter() {
+      gsap.to({ val: 0 }, {
+        val: target,
+        duration: 1.5,
+        ease: 'power2.out',
+        onUpdate() { el.textContent = Math.round(this.targets()[0].val) + suffix; },
+      });
     },
-  },
-};
+  });
+});
 ```
 
-### button-press
-```tsx
-export const buttonPress = {
-  tap: { scale: 0.95, transition: { duration: 0.1 } },
-  hover: { scale: 1.02, transition: { duration: 0.2 } },
-};
-
-// Usage: <motion.button whileTap="tap" whileHover="hover" variants={buttonPress} />
+### header-entrance
+```javascript
+// In DOMContentLoaded — NOT inside initScrollAnimations()
+const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+tl.from('.site-header .logo',    { opacity: 0, y: -20, duration: 0.5 })
+  .from('.site-header nav a',    { opacity: 0, y: -10, duration: 0.3, stagger: 0.06 }, '-=0.2')
+  .from('.site-header .cta-btn', { opacity: 0, scale: 0.9, duration: 0.3 }, '-=0.1');
 ```
 
-## Creating Custom Presets
-
-Save custom presets to `animations/presets/custom.ts`:
-
-```typescript
-export const myCustomPreset = {
-  initial: { /* initial state */ },
-  animate: { /* animated state */ },
-  exit: { /* exit state */ },
-  transition: { /* default transition */ },
-};
+### hero-entrance
+```javascript
+// In DOMContentLoaded — NOT inside initScrollAnimations()
+const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+heroTl
+  .from('#hero .badge',     { opacity: 0, y: 20, duration: 0.4 })
+  .from('#hero h1',         { opacity: 0, y: 30, duration: 0.5 }, '-=0.1')
+  .from('#hero .subtitle',  { opacity: 0, y: 20, duration: 0.4 }, '-=0.2')
+  .from('#hero .cta-group', { opacity: 0, y: 20, duration: 0.35 }, '-=0.15');
 ```
-
-Then use: `/animate-preset my-custom-preset`
-
-## Author
-
-Created by Brookside BI as part of React Animation Studio

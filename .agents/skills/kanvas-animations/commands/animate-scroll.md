@@ -12,256 +12,180 @@ cost: medium
 
 # /animate-scroll
 
-Add scroll-triggered animations to elements and sections with intelligent viewport detection.
+Scroll-triggered animations for Kanvas. All below-fold animations use `scrubEach()` with `scrub: 1`.
 
-## Usage
+> **Rule:** Never use fire-once `.from()` for below-fold elements. Counters are the only exception.
+> Scroll animations live in `initScrollAnimations()` in `static/scripts/main.js`.
 
-```
-/animate-scroll <target> [animation-type]
-```
+## scrubEach() Reference
 
-## Description
+`scrubEach()` is a Kanvas helper that creates per-element ScrollTriggers. Do NOT use `stagger` with `scrub` — it causes stuck-state bugs on reverse scroll.
 
-The `/animate-scroll` command adds scroll-triggered animations to elements. It automatically sets up intersection observers or scroll progress tracking to trigger animations when elements enter the viewport.
-
-## Options
-
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--library <lib>` | Animation library | framer-motion |
-| `--trigger <point>` | When to trigger (top, center, bottom, percentage) | 80% |
-| `--once` | Only animate once | true |
-| `--scrub` | Link animation to scroll position | false |
-| `--pin` | Pin element during scroll | false |
-| `--parallax <speed>` | Parallax factor (0.1-2) | - |
-
-## Workflow
-
-1. **Identify Target** - Locate the element or section
-2. **Configure Trigger** - Set scroll trigger point
-3. **Apply Animation** - Add reveal, parallax, or scrub animation
-4. **Handle Accessibility** - Respect reduced motion preferences
-
-## Examples
-
-```bash
-# Basic reveal animation
-/animate-scroll .card-section reveal
-
-# Parallax effect
-/animate-scroll .hero-image --parallax 0.5
-
-# Scrub animation linked to scroll
-/animate-scroll .progress-bar --scrub
-
-# Pinned section with animation
-/animate-scroll .feature-section --pin --scrub
-
-# Custom trigger point
-/animate-scroll .cta-section --trigger 50% fade-in-up
-
-# Multiple elements with stagger
-/animate-scroll ".grid-item" stagger-reveal
-```
-
-## Animation Types
-
-| Type | Description |
-|------|-------------|
-| `reveal` | Fade in with slight movement |
-| `reveal-up` | Slide up while fading in |
-| `reveal-left` | Slide from right while fading |
-| `reveal-scale` | Scale up while fading in |
-| `stagger-reveal` | Staggered reveal for multiple items |
-| `parallax` | Move at different scroll speed |
-| `progress` | Animate based on scroll progress |
-| `pin-scroll` | Pin and animate during scroll |
-
-## Generated Code Examples
-
-### Basic Reveal
-```tsx
-import { motion, useInView } from 'framer-motion';
-import { useRef } from 'react';
-
-function RevealSection({ children }: { children: React.ReactNode }) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, {
-    once: true,
-    margin: '-20% 0px',
-  });
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 50 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-    >
-      {children}
-    </motion.div>
-  );
-}
-```
-
-### Staggered Grid Reveal
-```tsx
-import { motion, useInView } from 'framer-motion';
-import { useRef } from 'react';
-
-function StaggeredGrid({ items }: { items: Item[] }) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: '-10%' });
-
-  const containerVariants = {
-    hidden: {},
-    visible: {
-      transition: { staggerChildren: 0.1 },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5, ease: 'easeOut' },
-    },
-  };
-
-  return (
-    <motion.div
-      ref={ref}
-      className="grid grid-cols-3 gap-4"
-      variants={containerVariants}
-      initial="hidden"
-      animate={isInView ? 'visible' : 'hidden'}
-    >
-      {items.map((item) => (
-        <motion.div key={item.id} variants={itemVariants}>
-          {item.content}
-        </motion.div>
-      ))}
-    </motion.div>
-  );
-}
-```
-
-### Parallax Effect
-```tsx
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { useRef } from 'react';
-
-function ParallaxImage({ src, speed = 0.5 }: { src: string; speed?: number }) {
-  const ref = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ['start end', 'end start'],
-  });
-
-  const y = useTransform(
-    scrollYProgress,
-    [0, 1],
-    [100 * speed, -100 * speed]
-  );
-
-  return (
-    <div ref={ref} className="overflow-hidden h-96">
-      <motion.img
-        src={src}
-        style={{ y }}
-        className="w-full h-[120%] object-cover"
-      />
-    </div>
-  );
-}
-```
-
-### Scroll Progress Animation
-```tsx
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { useRef } from 'react';
-
-function ScrollProgressBar() {
-  const { scrollYProgress } = useScroll();
-
-  return (
-    <motion.div
-      className="fixed top-0 left-0 right-0 h-1 bg-blue-500 origin-left z-50"
-      style={{ scaleX: scrollYProgress }}
-    />
-  );
-}
-
-function ScrollLinkedSection() {
-  const ref = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ['start end', 'end start'],
-  });
-
-  const opacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0]);
-  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.8, 1, 0.8]);
-
-  return (
-    <motion.section
-      ref={ref}
-      style={{ opacity, scale }}
-      className="h-screen flex items-center justify-center"
-    >
-      Content that scales and fades based on scroll position
-    </motion.section>
-  );
-}
-```
-
-### GSAP ScrollTrigger
-```typescript
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useGSAP } from '@gsap/react';
-
-gsap.registerPlugin(ScrollTrigger);
-
-function GSAPScrollReveal() {
-  const containerRef = useRef(null);
-
-  useGSAP(() => {
-    gsap.from('.reveal-item', {
-      y: 60,
-      opacity: 0,
-      duration: 0.8,
-      stagger: 0.15,
-      ease: 'power3.out',
+```javascript
+/**
+ * @param {NodeList|Element[]} elements  - Elements to animate
+ * @param {object}             fromProps - gsap.from() properties (initial state)
+ * @param {string}             triggerEl - CSS selector for the scroll trigger container
+ * @param {number}             startBase - viewport % where first element starts (e.g. 80)
+ * @param {number}             endBase   - viewport % where first element ends (e.g. 40)
+ * @param {number}             offsetPer - % offset per subsequent element (e.g. 5)
+ */
+const scrubEach = (elements, fromProps, triggerEl, startBase, endBase, offsetPer) => {
+  [...elements].forEach((el, i) => {
+    gsap.from(el, {
+      ...fromProps,
       scrollTrigger: {
-        trigger: '.reveal-container',
-        start: 'top 80%',
-        end: 'bottom 20%',
-        toggleActions: 'play none none reverse',
+        trigger: triggerEl,
+        start: `top ${startBase - i * offsetPer}%`,
+        end:   `top ${endBase  - i * offsetPer}%`,
+        scrub: 1,
       },
     });
-  }, { scope: containerRef });
+  });
+};
+```
 
-  return (
-    <div ref={containerRef} className="reveal-container">
-      <div className="reveal-item">Item 1</div>
-      <div className="reveal-item">Item 2</div>
-      <div className="reveal-item">Item 3</div>
-    </div>
-  );
+## Patterns
+
+### Standard Heading Entrance
+```javascript
+const badge = document.querySelector('.features .badge');
+const title = document.querySelector('.features h2');
+const sub   = document.querySelector('.features .subtitle');
+
+if (badge) gsap.from(badge, { opacity: 0, y: 20, scrollTrigger: { trigger: '.features', start: 'top 85%', end: 'top 55%', scrub: 1 } });
+if (title) gsap.from(title, { opacity: 0, y: 40, scrollTrigger: { trigger: '.features', start: 'top 80%', end: 'top 50%', scrub: 1 } });
+if (sub)   gsap.from(sub,   { opacity: 0, y: 30, scrollTrigger: { trigger: '.features', start: 'top 78%', end: 'top 48%', scrub: 1 } });
+```
+
+### Card Grid Stagger
+```javascript
+const cards = document.querySelectorAll('.features .feature-card');
+if (cards.length) {
+  scrubEach(cards, { opacity: 0, y: 30 }, '.features', 80, 40, 5);
 }
 ```
 
-## Scroll Trigger Options
+### Section Recession
+```javascript
+// Fade section out as user scrolls past it
+const hero = document.querySelector('.hero-recession');
+if (hero) {
+  gsap.to(hero, {
+    opacity: 0,
+    y: -60,
+    scrollTrigger: {
+      trigger: hero,
+      start: 'bottom 80%',
+      end:   'bottom 10%',
+      scrub: 1,
+    },
+  });
+}
+```
 
-| Option | Values | Description |
-|--------|--------|-------------|
-| `start` | `top 80%`, `center`, `bottom` | When animation starts |
-| `end` | `bottom 20%`, `center` | When animation ends (for scrub) |
-| `scrub` | `true`, `1`, `0.5` | Link to scroll (number = smoothing) |
-| `pin` | `true` | Pin element during animation |
-| `markers` | `true` | Show debug markers |
+### Layered Parallax (depth)
 
-## Author
+Different sections enter at different depths for a layered scroll feel:
 
-Created by Brookside BI as part of React Animation Studio
+| Depth | y from | y end | Description |
+|-------|--------|-------|-------------|
+| Shallow (headings) | y: 40 | y: 0 | Faster entrance |
+| Mid (cards) | y: 60–80 | y: 0 | Standard |
+| Deep (bg accents) | y: 100–120 | y: 0 | Slower entrance |
+
+```javascript
+// Shallow layer (section heading)
+gsap.from('.demo h2', { y: 40, opacity: 0, scrollTrigger: { trigger: '.demo', start: 'top 85%', end: 'top 55%', scrub: 1 } });
+
+// Mid layer (cards)
+scrubEach(document.querySelectorAll('.demo .card'), { y: 70, opacity: 0 }, '.demo', 82, 42, 6);
+
+// Deep layer (decorative orb)
+gsap.from('.demo .bg-orb', { y: 120, opacity: 0, scrollTrigger: { trigger: '.demo', start: 'top 95%', end: 'top 40%', scrub: 1 } });
+```
+
+### SVG Path Draw (scrub)
+```javascript
+const path = document.querySelector('.section-divider path');
+if (path) {
+  const len = path.getTotalLength();
+  gsap.set(path, { strokeDasharray: len, strokeDashoffset: len });
+  gsap.to(path, {
+    strokeDashoffset: 0,
+    scrollTrigger: { trigger: path, start: 'top 90%', end: 'top 40%', scrub: 1 },
+  });
+}
+```
+
+### Gradient Divider Scale (between sections)
+```javascript
+document.querySelectorAll('.section-divider').forEach(divider => {
+  gsap.from(divider, {
+    scaleX: 0.3,
+    opacity: 0,
+    scrollTrigger: {
+      trigger: divider,
+      start: 'top 90%',
+      end:   'top 60%',
+      scrub: 1,
+    },
+  });
+});
+```
+
+### Ambient Orb Drift
+```javascript
+const orbConfig = [
+  { sel: '.scroll-orb--1', y:  120, x:  40 },
+  { sel: '.scroll-orb--2', y: -100, x: -30 },
+  { sel: '.scroll-orb--3', y:   80, x:  60 },
+];
+
+orbConfig.forEach(({ sel, y, x }) => {
+  const orb = document.querySelector(sel);
+  if (!orb) return;
+  gsap.to(orb, {
+    y, x,
+    scrollTrigger: {
+      trigger: document.body,
+      start:   'top top',
+      end:     'bottom bottom',
+      scrub:   1,
+    },
+  });
+});
+```
+
+### Counter (fire-once exception)
+```javascript
+// Counters fire once — this is the only exception to the scrub rule
+document.querySelectorAll('.counter[data-count]').forEach(el => {
+  const target = +el.dataset.count;
+  const suffix = el.dataset.suffix || '';
+  ScrollTrigger.create({
+    trigger: el,
+    start: 'top 85%',
+    once: true,
+    onEnter() {
+      gsap.to({ val: 0 }, {
+        val: target,
+        duration: 1.5,
+        ease: 'power2.out',
+        onUpdate() { el.textContent = Math.round(this.targets()[0].val) + suffix; },
+      });
+    },
+  });
+});
+```
+
+## ScrollTrigger Reference
+
+| Property | Values | Use |
+|----------|--------|-----|
+| `trigger` | CSS selector | Element that drives the animation |
+| `start` | `'top 80%'` | When trigger top hits 80% of viewport |
+| `end` | `'top 40%'` | When trigger top hits 40% of viewport |
+| `scrub` | `1` | Smooth lag; links to scroll position |
+| `once` | `true` | Fire once (counters only) |
+| `markers` | `true` | Debug — remove before commit |

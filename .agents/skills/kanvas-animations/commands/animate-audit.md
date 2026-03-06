@@ -12,185 +12,102 @@ cost: medium
 
 # /animate-audit
 
-Audit animations for performance, accessibility, and best practices compliance.
+Audit Kanvas site animations for convention compliance, performance, and accessibility. Checks `main.js`, SCSS files, and Hugo partials.
 
 ## Usage
 
 ```
-/animate-audit [path]
+/animate-audit [path|section]
 ```
 
-## Description
+## What Gets Checked
 
-The `/animate-audit` command performs comprehensive analysis of animation implementations in your React codebase. It identifies performance issues, accessibility concerns, and opportunities for improvement.
+### Convention Checks
 
-## Options
-
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--path <path>` | Directory or file to audit | ./src |
-| `--fix` | Auto-fix simple issues | false |
-| `--report <format>` | Output format (console, json, html) | console |
-| `--strict` | Enable strict mode checks | false |
-| `--focus <area>` | Focus on specific area (performance, a11y, best-practices) | all |
-
-## Audit Categories
+| Check | Rule |
+|-------|------|
+| Fire-once below fold | All below-fold GSAP must use `scrub: 1`, not `once: true` |
+| `stagger` + `scrub` | Must use `scrubEach()` — stagger with scrub causes stuck states |
+| Hardcoded color | No `#00b39f` or `#00b399` in JS/SCSS — must use `$primary` |
+| Hero direct target | `#hero` must not receive GSAP position/transform from `main.js` |
+| Load order | GSAP core CDN link must appear before ScrollTrigger CDN link in `footer.html` |
+| Inline styles | No `style="..."` on HTML elements — styling belongs in SCSS |
+| Blur cap | `filter: blur()` must not exceed 70px (GPU budget) |
 
 ### Performance Checks
 
-| Check | Description | Severity |
-|-------|-------------|----------|
-| `layout-thrashing` | Animations that trigger layout recalculation | High |
-| `non-gpu-properties` | Animating width/height/top/left instead of transform | High |
-| `missing-will-change` | Missing will-change hints for complex animations | Medium |
-| `excessive-repaints` | Animations causing excessive paint operations | Medium |
-| `memory-leaks` | Animation cleanup missing in useEffect | High |
-| `large-dom-animations` | Animating too many DOM elements simultaneously | Medium |
-| `heavy-spring-config` | Overly complex spring configurations | Low |
+| Check | Severity |
+|-------|----------|
+| Animating `width`/`height`/`top`/`left` | High — use `transform` instead |
+| Missing `scrub` on scroll animations | High — fire-once below fold causes jank on back-scroll |
+| `backdrop-filter` blur > 24px on glass cards | Medium — mobile GPU limit |
+| Too many elements in one `scrubEach` call | Medium — split large lists |
+| `rotation: 360` continuous spin | Low — use subtle directional drift |
 
 ### Accessibility Checks
 
-| Check | Description | Severity |
-|-------|-------------|----------|
-| `missing-reduced-motion` | No prefers-reduced-motion support | High |
-| `vestibular-triggers` | Animations that may trigger vestibular disorders | High |
-| `auto-playing-indefinite` | Indefinitely looping animations without user control | Medium |
-| `flash-rate` | Animations flashing more than 3 times per second | Critical |
-| `motion-without-purpose` | Decorative animations lacking user benefit | Low |
-| `focus-indicator-animated` | Focus indicators should not animate excessively | Medium |
-
-### Best Practices
-
-| Check | Description | Severity |
-|-------|-------------|----------|
-| `inconsistent-timing` | Inconsistent duration/easing across similar elements | Medium |
-| `magic-numbers` | Hard-coded animation values instead of tokens | Low |
-| `missing-exit-animation` | Enter animations without matching exits | Medium |
-| `gesture-without-fallback` | Gesture animations without keyboard alternatives | High |
-| `missing-loading-states` | Async operations without loading animations | Medium |
-| `excessive-dependencies` | Multiple animation libraries in use | Low |
+| Check | Severity |
+|-------|----------|
+| Missing reduced-motion guard in `initScrollAnimations()` | High |
+| Looping CSS animations without `prefers-reduced-motion` override | Medium |
+| Auto-playing animations without user control | Medium |
 
 ## Examples
 
 ```bash
-# Audit entire src directory
+# Audit entire main.js
+/animate-audit static/scripts/main.js
+
+# Audit a specific section's SCSS
+/animate-audit assets/scss/_hero.scss
+
+# Audit a Hugo partial for inline styles
+/animate-audit layouts/partials/section/features.html
+
+# Full audit
 /animate-audit
-
-# Audit specific component
-/animate-audit src/components/Modal.tsx
-
-# Performance-focused audit
-/animate-audit --focus performance
-
-# Generate JSON report
-/animate-audit --report json > animation-audit.json
-
-# Auto-fix simple issues
-/animate-audit --fix
-
-# Strict mode for production readiness
-/animate-audit --strict
 ```
 
-## Audit Report Example
+## Audit Report Format
 
 ```
-Animation Audit Report
+Kanvas Animation Audit
 ======================
-Scanned: 47 files
-Animations found: 128
-Issues found: 12
+Files scanned: main.js, _*.scss, layouts/**/*.html
+Issues: 4
 
-CRITICAL (1)
-------------
-[FLASH-RATE] src/components/Alert.tsx:45
-  Animation flashes at 4Hz, exceeding safe 3Hz limit
-  > Fix: Reduce animation frequency or add user control
+HIGH
+----
+[FIRE-ONCE-BELOW-FOLD] main.js:142
+  gsap.from('.features-card', { once: true }) — use scrubEach() instead
 
-HIGH (3)
---------
-[LAYOUT-THRASHING] src/components/Sidebar.tsx:78
-  Animating 'width' triggers layout recalculation
-  > Fix: Use 'transform: scaleX()' instead
+[LAYOUT-THRASH] main.js:89
+  Animating 'height' — use 'scaleY' instead
 
-[MISSING-REDUCED-MOTION] src/components/Hero.tsx:23
-  No reduced motion alternative provided
-  > Fix: Add useReducedMotion() hook check
+MEDIUM
+------
+[HARDCODED-COLOR] _hero.scss:34
+  color: #00b39f — use $primary
 
-[MEMORY-LEAK] src/components/Particles.tsx:56
-  Animation not cleaned up on unmount
-  > Fix: Return cleanup function from useEffect
-
-MEDIUM (5)
-----------
-[INCONSISTENT-TIMING] Multiple files
-  Duration varies: 200ms, 300ms, 350ms for similar transitions
-  > Fix: Use animation tokens for consistency
-
-[NON-GPU-PROPERTIES] src/components/Card.tsx:34
-  Animating 'box-shadow' causes repaints
-  > Fix: Use pseudo-element with opacity for shadow animation
-
-...
+[BLUR-EXCESS] main.js:201
+  filter: blur(100px) on .scroll-orb — cap at 70px
 
 Recommendations
 ---------------
-1. Create animation tokens file for consistent timing
-2. Add global reduced motion provider
-3. Consider consolidating to single animation library
-4. Add animation performance monitoring
-
-Score: 72/100 (Good)
+1. Replace fire-once with scrubEach() in features section (see scroll-animations skill)
+2. Swap #00b39f → $primary in _hero.scss
+3. Add prefers-reduced-motion override in _section-transitions.scss for looping orbs
 ```
 
-## Auto-Fix Capabilities
+## Auto-Fix Targets
 
-The `--fix` flag can automatically fix:
+When `--fix` is passed, attempt to fix:
+- Replace `#00b39f` / `#00b399` with `$primary` in SCSS
+- Add `scrub: 1` to ScrollTrigger configs missing it
+- Add the `prefers-reduced-motion` guard to `initScrollAnimations()`
+- Cap `blur()` values above 70px
 
-- Add `useReducedMotion` imports
-- Replace `width`/`height` with `scale` transforms
-- Add cleanup functions to animation effects
-- Insert `will-change` hints
-- Convert magic numbers to token references
+## Related Skills
 
-## Integration
-
-### Pre-commit Hook
-```bash
-# In .husky/pre-commit
-/animate-audit --strict --focus performance
-```
-
-### CI/CD Check
-```yaml
-# In GitHub Actions
-- name: Animation Audit
-  run: |
-    npx @kanvas-animations/cli audit --report json
-    if [ $? -ne 0 ]; then
-      echo "Animation audit failed"
-      exit 1
-    fi
-```
-
-## Custom Rules
-
-Add custom rules in `animation-audit.config.js`:
-
-```javascript
-module.exports = {
-  rules: {
-    'max-animation-duration': ['warn', { max: 1000 }],
-    'required-easing': ['error', { easing: 'ease-out' }],
-    'ban-libraries': ['warn', { banned: ['anime.js'] }],
-  },
-  ignore: [
-    '**/tests/**',
-    '**/*.stories.tsx',
-  ],
-};
-```
-
-## Author
-
-Created by Brookside BI as part of React Animation Studio
+- **scroll-animations** — correct scrub-based patterns
+- **performance-optimizer** agent — deep performance analysis

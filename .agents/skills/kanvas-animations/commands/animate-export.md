@@ -12,284 +12,151 @@ cost: medium
 
 # /animate-export
 
-Export animations as reusable components, hooks, or design tokens.
+Extract and document a reusable Kanvas animation pattern from existing code.
+
+> **Purpose:** Find a recurring animation pattern in `static/scripts/` or `assets/scss/`
+> and produce a clean, documented snippet ready to paste into new sections.
+> Not an npm package exporter — Kanvas is a Hugo static site with no bundler.
 
 ## Usage
 
 ```
-/animate-export <source> [options]
+/animate-export <description or selector>
 ```
 
-## Description
+## Standard Exportable Patterns
 
-The `/animate-export` command extracts and packages animations into reusable formats that can be shared across projects, teams, or published as packages.
+These patterns are used throughout Kanvas and can be copied verbatim:
 
-## Options
+### heading-entrance
+```javascript
+// scrubEach badge → title → subtitle for a new section
+const badge   = document.querySelector('.my-section .badge');
+const title   = document.querySelector('.my-section h2');
+const sub     = document.querySelector('.my-section .subtitle');
+const trigger = '.my-section';
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--format <fmt>` | Export format (component, hook, tokens, package) | component |
-| `--output <path>` | Output directory | ./animations |
-| `--name <name>` | Export name | auto-generated |
-| `--typescript` | Generate TypeScript definitions | true |
-| `--stories` | Generate Storybook stories | false |
-| `--tests` | Generate test files | false |
-
-## Export Formats
-
-### Component Export
-Self-contained React component with animation built-in.
-
-### Hook Export
-Custom React hook encapsulating animation logic.
-
-### Tokens Export
-Design tokens for animation timing, easing, and spring configs.
-
-### Package Export
-Complete npm package ready for publishing.
-
-## Examples
-
-```bash
-# Export animation as component
-/animate-export src/components/FadeIn.tsx --format component
-
-# Export as reusable hook
-/animate-export src/animations/useSlideIn.ts --format hook
-
-# Extract animation tokens
-/animate-export --format tokens --output ./design-system/animations
-
-# Create publishable package
-/animate-export ./src/animations --format package --name @myorg/animations
-
-# Include Storybook stories
-/animate-export src/components/Modal.tsx --format component --stories
-
-# With tests
-/animate-export src/animations --format hook --tests
+if (badge)  gsap.from(badge,  { opacity: 0, y: 20, scrollTrigger: { trigger, start: 'top 85%', end: 'top 55%', scrub: 1 } });
+if (title)  gsap.from(title,  { opacity: 0, y: 40, scrollTrigger: { trigger, start: 'top 80%', end: 'top 50%', scrub: 1 } });
+if (sub)    gsap.from(sub,    { opacity: 0, y: 30, scrollTrigger: { trigger, start: 'top 78%', end: 'top 48%', scrub: 1 } });
 ```
 
-## Generated Outputs
+### card-stagger
+```javascript
+// scrubEach for a grid of cards
+const cards = document.querySelectorAll('.my-section .card');
+if (cards.length) {
+  scrubEach(cards, { opacity: 0, y: 30 }, '.my-section', 80, 40, 5);
+}
+```
 
-### Component Export
-```tsx
-// animations/FadeInUp.tsx
-import { motion, HTMLMotionProps } from 'framer-motion';
-import { forwardRef } from 'react';
+### section-recession
+```javascript
+// Fade + shift up as user scrolls past the section
+const section = document.querySelector('.my-section');
+if (section) {
+  gsap.to(section, {
+    opacity: 0,
+    y: -40,
+    scrollTrigger: {
+      trigger: section,
+      start: 'bottom 70%',
+      end:   'bottom 20%',
+      scrub: 1,
+    },
+  });
+}
+```
 
-export interface FadeInUpProps extends HTMLMotionProps<'div'> {
-  /** Delay before animation starts (seconds) */
-  delay?: number;
-  /** Animation duration (seconds) */
-  duration?: number;
-  /** Distance to animate from (pixels) */
-  distance?: number;
+### hover-lift (CSS only)
+```scss
+.card {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+  }
+}
+```
+
+### float-keyframe (CSS only)
+```scss
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
 }
 
-export const FadeInUp = forwardRef<HTMLDivElement, FadeInUpProps>(
-  ({ delay = 0, duration = 0.4, distance = 20, children, ...props }, ref) => {
-    return (
-      <motion.div
-        ref={ref}
-        initial={{ opacity: 0, y: distance }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{
-          duration,
-          delay,
-          ease: [0.25, 0.1, 0.25, 1],
-        }}
-        {...props}
-      >
-        {children}
-      </motion.div>
+.floating {
+  animation: float 3s ease-in-out infinite;
+}
+```
+
+### pulse-glow (CSS only)
+```scss
+@keyframes shadowPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba($primary, 0); }
+  50%       { box-shadow: 0 0 20px 4px rgba($primary, 0.25); }
+}
+
+.pulse-glow {
+  animation: shadowPulse 2.5s ease-in-out infinite;
+}
+```
+
+### shimmer (CSS only)
+```scss
+.shimmer {
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 40%,
+      rgba(255, 255, 255, 0.12) 50%,
+      transparent 60%
     );
+    background-size: 200% 100%;
+    animation: shimmerMove 2s linear infinite;
+    pointer-events: none;
   }
-);
-
-FadeInUp.displayName = 'FadeInUp';
-```
-
-### Hook Export
-```tsx
-// animations/hooks/useSlideIn.ts
-import { useAnimation, Variants } from 'framer-motion';
-import { useCallback, useEffect } from 'react';
-
-export interface UseSlideInOptions {
-  direction?: 'left' | 'right' | 'up' | 'down';
-  distance?: number;
-  duration?: number;
-  delay?: number;
-  autoPlay?: boolean;
 }
 
-export interface UseSlideInReturn {
-  controls: ReturnType<typeof useAnimation>;
-  variants: Variants;
-  play: () => Promise<void>;
-  reset: () => void;
-}
-
-export function useSlideIn(options: UseSlideInOptions = {}): UseSlideInReturn {
-  const {
-    direction = 'up',
-    distance = 30,
-    duration = 0.4,
-    delay = 0,
-    autoPlay = true,
-  } = options;
-
-  const controls = useAnimation();
-
-  const getInitialPosition = () => {
-    switch (direction) {
-      case 'left': return { x: -distance, y: 0 };
-      case 'right': return { x: distance, y: 0 };
-      case 'up': return { x: 0, y: distance };
-      case 'down': return { x: 0, y: -distance };
-    }
-  };
-
-  const variants: Variants = {
-    hidden: { opacity: 0, ...getInitialPosition() },
-    visible: {
-      opacity: 1,
-      x: 0,
-      y: 0,
-      transition: { duration, delay, ease: [0.25, 0.1, 0.25, 1] },
-    },
-  };
-
-  const play = useCallback(async () => {
-    await controls.start('visible');
-  }, [controls]);
-
-  const reset = useCallback(() => {
-    controls.set('hidden');
-  }, [controls]);
-
-  useEffect(() => {
-    if (autoPlay) {
-      play();
-    }
-  }, [autoPlay, play]);
-
-  return { controls, variants, play, reset };
+@keyframes shimmerMove {
+  from { background-position: -200% 0; }
+  to   { background-position:  200% 0; }
 }
 ```
 
-### Tokens Export
-```typescript
-// animations/tokens/index.ts
-export const animationTokens = {
-  duration: {
-    instant: 0,
-    fast: 0.15,
-    normal: 0.3,
-    slow: 0.5,
-    slower: 0.8,
-  },
+### glass-card (SCSS only)
+```scss
+.glass-card {
+  backdrop-filter: blur(16px) saturate(160%);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
 
-  easing: {
-    linear: [0, 0, 1, 1],
-    easeIn: [0.4, 0, 1, 1],
-    easeOut: [0, 0, 0.2, 1],
-    easeInOut: [0.4, 0, 0.2, 1],
-    emphasize: [0.25, 0.1, 0.25, 1],
-  },
-
-  spring: {
-    snappy: { type: 'spring', stiffness: 400, damping: 30 },
-    bouncy: { type: 'spring', stiffness: 300, damping: 15 },
-    gentle: { type: 'spring', stiffness: 150, damping: 20 },
-    stiff: { type: 'spring', stiffness: 500, damping: 45 },
-  },
-
-  distance: {
-    sm: 10,
-    md: 20,
-    lg: 40,
-    xl: 80,
-  },
-} as const;
-
-export type AnimationDuration = keyof typeof animationTokens.duration;
-export type AnimationEasing = keyof typeof animationTokens.easing;
-export type AnimationSpring = keyof typeof animationTokens.spring;
-```
-
-### Package Export Structure
-```
-@myorg/animations/
-├── package.json
-├── README.md
-├── LICENSE
-├── tsconfig.json
-├── src/
-│   ├── index.ts
-│   ├── components/
-│   │   ├── FadeIn.tsx
-│   │   ├── SlideIn.tsx
-│   │   └── index.ts
-│   ├── hooks/
-│   │   ├── useAnimation.ts
-│   │   ├── useReducedMotion.ts
-│   │   └── index.ts
-│   └── tokens/
-│       ├── duration.ts
-│       ├── easing.ts
-│       ├── spring.ts
-│       └── index.ts
-├── dist/
-│   ├── index.js
-│   ├── index.d.ts
-│   └── ...
-└── stories/
-    ├── FadeIn.stories.tsx
-    └── SlideIn.stories.tsx
-```
-
-### Generated package.json
-```json
-{
-  "name": "@myorg/animations",
-  "version": "1.0.0",
-  "description": "Reusable React animation components and hooks",
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    },
-    "./components": {
-      "import": "./dist/components/index.mjs",
-      "require": "./dist/components/index.js"
-    },
-    "./hooks": {
-      "import": "./dist/hooks/index.mjs",
-      "require": "./dist/hooks/index.js"
-    },
-    "./tokens": {
-      "import": "./dist/tokens/index.mjs",
-      "require": "./dist/tokens/index.js"
-    }
-  },
-  "peerDependencies": {
-    "framer-motion": ">=10.0.0",
-    "react": ">=18.0.0"
-  },
-  "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts",
-    "prepublishOnly": "npm run build"
+  // Top-edge light reflection
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, transparent 40%);
+    pointer-events: none;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
   }
 }
 ```
 
-## Author
+## Workflow
 
-Created by Brookside BI as part of React Animation Studio
+1. Describe the pattern or provide a CSS selector
+2. Locate matching code in `static/scripts/main.js` or `assets/scss/`
+3. Return a clean, self-contained snippet with usage comments
+4. Output is ready to paste into a new section's JS block or SCSS partial

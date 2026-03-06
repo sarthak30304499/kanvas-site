@@ -1,545 +1,260 @@
-# Accent Animations Skill
+# Accent Animations Skill — Kanvas Site
 
-Expert knowledge for decorative accent animations - floating shapes, glowing orbs, animated borders, sparkle effects, and embellishments that add visual polish and delight to interfaces.
+Expert knowledge for decorative accent animations: floating orbs, glowing borders, shimmer
+effects, animated section dividers, and ambient embellishments. All implemented in SCSS
+@keyframes or GSAP (vanilla JS) — no React, no Framer Motion.
 
-## When to Use
+## Floating Elements (CSS @keyframes)
 
-Activate this skill when:
-- User wants decorative floating elements
-- Adding glowing or shimmer effects
-- Creating animated borders or outlines
-- Building sparkle or confetti effects
-- Need subtle ambient animations
-- Adding visual polish to sections
+### float / drift / pulse keyframes
 
-## File Patterns
+Defined in `_hero-glass.scss` and reused across the site:
 
-- `**/*.tsx` with decorative components
-- `**/components/Accent*.tsx`
-- `**/components/Decoration*.tsx`
-- `**/components/*Sparkle*.tsx`
-
-## Accent Animation Types
-
-### 1. Floating Shapes
-
-#### Floating Orbs
-```tsx
-import { motion } from 'framer-motion';
-
-interface OrbProps {
-  color?: string;
-  size?: number;
-  blur?: number;
-  duration?: number;
+```scss
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-20px); }
 }
 
-export function FloatingOrb({
-  color = '#667eea',
-  size = 300,
-  blur = 80,
-  duration = 20,
-}: OrbProps) {
-  return (
-    <motion.div
-      className="absolute rounded-full pointer-events-none"
-      style={{
-        width: size,
-        height: size,
-        background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
-        filter: `blur(${blur}px)`,
-      }}
-      animate={{
-        x: [0, 100, -50, 0],
-        y: [0, -80, 40, 0],
-        scale: [1, 1.2, 0.9, 1],
-      }}
-      transition={{
-        duration,
-        repeat: Infinity,
-        ease: 'easeInOut',
-      }}
-    />
-  );
+@keyframes drift {
+    0%   { transform: translate(0, 0) rotate(0deg); }
+    25%  { transform: translate(6px, -8px) rotate(2deg); }
+    75%  { transform: translate(-4px, 4px) rotate(-1deg); }
+    100% { transform: translate(0, 0) rotate(0deg); }
 }
 
-export function FloatingOrbs() {
-  return (
-    <div className="absolute inset-0 -z-10 overflow-hidden">
-      <FloatingOrb color="#667eea" size={400} className="top-20 left-20" />
-      <FloatingOrb color="#764ba2" size={300} duration={25} className="bottom-40 right-20" />
-      <FloatingOrb color="#f093fb" size={250} duration={18} className="top-1/2 left-1/3" />
-    </div>
-  );
+@keyframes pulse {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50%       { opacity: 1;   transform: scale(1.08); }
+}
+
+@keyframes shimmer {
+    0%   { background-position: -200% center; }
+    100% { background-position: 200% center; }
 }
 ```
 
-#### Floating Geometric Shapes
-```tsx
-const shapes = ['circle', 'square', 'triangle'] as const;
+### data-float stagger
 
-interface FloatingShapeProps {
-  shape: typeof shapes[number];
-  size?: number;
-  color?: string;
-  duration?: number;
-  delay?: number;
+Any element with `data-float` gets an auto-staggered delay from `hero-glass.js`:
+
+```html
+<div class="orb orb--one"   data-float></div>
+<div class="orb orb--two"   data-float></div>
+<div class="orb orb--three" data-float></div>
+```
+
+```scss
+[data-float] {
+    animation: float 12s ease-in-out infinite;
+}
+// hero-glass.js sets animationDelay = index * -2.5s on each item
+```
+
+## Ambient Background Orbs
+
+Defined in `_section-transitions.scss`. Three fixed orbs that GSAP drifts with scroll:
+
+```scss
+.scroll-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(70px);          // not 100px — GPU limit
+    will-change: transform, opacity;
 }
 
-export function FloatingShape({
-  shape,
-  size = 20,
-  color = 'rgba(99, 102, 241, 0.3)',
-  duration = 15,
-  delay = 0,
-}: FloatingShapeProps) {
-  const shapeStyles = {
-    circle: { borderRadius: '50%' },
-    square: { borderRadius: '4px' },
-    triangle: {
-      clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)',
-      borderRadius: '0',
-    },
-  };
-
-  return (
-    <motion.div
-      style={{
-        width: size,
-        height: size,
-        backgroundColor: color,
-        ...shapeStyles[shape],
-      }}
-      animate={{
-        y: [0, -30, 0],
-        x: [0, 15, -15, 0],
-        rotate: [0, 180, 360],
-        opacity: [0.3, 0.6, 0.3],
-      }}
-      transition={{
-        duration,
-        delay,
-        repeat: Infinity,
-        ease: 'easeInOut',
-      }}
-    />
-  );
+.scroll-orb--1 {
+    width: 600px; height: 600px;
+    top: 10%; left: -5%;
+    background: radial-gradient(circle, rgba($primary, 0.1), transparent 70%);
 }
 
-export function FloatingShapes({ count = 15 }: { count?: number }) {
-  const items = Array.from({ length: count }, (_, i) => ({
-    id: i,
-    shape: shapes[i % shapes.length],
-    size: Math.random() * 30 + 10,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    duration: Math.random() * 10 + 10,
-    delay: Math.random() * 5,
-  }));
+.scroll-orb--2 {
+    width: 500px; height: 500px;
+    top: 40%; right: -10%;
+    background: radial-gradient(circle, rgba($secondary, 0.08), transparent 70%);
+}
 
-  return (
-    <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
-      {items.map((item) => (
-        <div
-          key={item.id}
-          className="absolute"
-          style={{ left: `${item.x}%`, top: `${item.y}%` }}
-        >
-          <FloatingShape
-            shape={item.shape}
-            size={item.size}
-            duration={item.duration}
-            delay={item.delay}
-          />
-        </div>
-      ))}
-    </div>
-  );
+.scroll-orb--3 {
+    width: 450px; height: 450px;
+    bottom: 10%; left: 20%;
+    background: radial-gradient(circle, rgba($primary, 0.07), transparent 70%);
 }
 ```
 
-### 2. Glow Effects
+GSAP drives them from `initScrollAnimations()` in main.js — see `scroll-animations` skill.
 
-#### Pulsing Glow
-```tsx
-export function PulsingGlow({
-  color = '#667eea',
-  size = 200,
-}: {
-  color?: string;
-  size?: number;
-}) {
-  return (
-    <motion.div
-      className="absolute rounded-full pointer-events-none"
-      style={{
-        width: size,
-        height: size,
-        background: `radial-gradient(circle, ${color}40 0%, transparent 70%)`,
-      }}
-      animate={{
-        scale: [1, 1.5, 1],
-        opacity: [0.5, 0.8, 0.5],
-      }}
-      transition={{
-        duration: 3,
-        repeat: Infinity,
-        ease: 'easeInOut',
-      }}
-    />
-  );
+## Inline Section Orbs (Hero)
+
+Small hero-specific orbs in `_hero-glass.scss`:
+
+```scss
+.ambient {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    animation: float 18s ease-in-out infinite;
+    will-change: transform, opacity;
 }
 ```
 
-#### Glow Border
-```tsx
-export function GlowBorder({
-  children,
-  color = '#667eea',
-}: {
-  children: React.ReactNode;
-  color?: string;
-}) {
-  return (
-    <div className="relative">
-      <motion.div
-        className="absolute -inset-0.5 rounded-xl opacity-75 blur-sm"
-        style={{ background: color }}
-        animate={{
-          opacity: [0.5, 0.8, 0.5],
-        }}
-        transition={{
-          duration: 2,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
-      <div className="relative bg-slate-900 rounded-xl">{children}</div>
-    </div>
-  );
+## Animated Section Dividers
+
+Dividers injected between sections by JS, scaled in on scrub:
+
+```scss
+.section-divider {
+    height: 1px;
+    max-width: 800px;
+    margin: 0 auto;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba($primary, 0.3)  20%,
+        rgba($secondary, 0.5) 50%,
+        rgba($primary, 0.3)  80%,
+        transparent
+    );
+    will-change: transform, opacity;
+    transform-origin: center;
 }
 ```
 
-#### Rainbow Glow Border
-```tsx
-export function RainbowGlowBorder({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="relative group">
-      <motion.div
-        className="absolute -inset-1 rounded-xl opacity-75 blur"
-        style={{
-          background: 'linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000)',
-          backgroundSize: '400%',
-        }}
-        animate={{
-          backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-        }}
-        transition={{
-          duration: 5,
-          repeat: Infinity,
-          ease: 'linear',
-        }}
-      />
-      <div className="relative bg-slate-900 rounded-xl">{children}</div>
-    </div>
-  );
+```js
+// main.js — injected divider with scrub entrance
+const divider = document.createElement('div');
+divider.className = 'section-divider';
+section.after(divider);
+gsap.from(divider, {
+    opacity: 0, scaleX: 0.3,
+    scrollTrigger: { trigger: divider, start: 'top 90%', end: 'top 70%', scrub: 1 }
+});
+```
+
+## Shimmer Highlight (SCSS only)
+
+```scss
+.shimmer-text {
+    background: linear-gradient(
+        90deg,
+        $body-color 0%,
+        rgba($primary, 0.9) 45%,
+        rgba(255, 255, 255, 0.95) 50%,
+        rgba($primary, 0.9) 55%,
+        $body-color 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 3s linear infinite;
+    animation-play-state: paused;
+
+    &:hover {
+        animation-play-state: running;
+    }
 }
 ```
 
-### 3. Sparkle Effects
+## Pulsing Teal Glow (CTA elements)
 
-#### Sparkle Component
-```tsx
-interface SparkleProps {
-  size?: number;
-  color?: string;
+```scss
+.cta-glow {
+    box-shadow:
+        0 0 0 1px rgba($primary, 0.2),
+        0 0 40px rgba($primary, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    animation: shadowPulse 3s ease-in-out infinite;
 }
 
-export function Sparkle({ size = 20, color = '#FFC700' }: SparkleProps) {
-  return (
-    <motion.svg
-      width={size}
-      height={size}
-      viewBox="0 0 160 160"
-      fill="none"
-      initial={{ scale: 0, rotate: 0 }}
-      animate={{
-        scale: [0, 1, 0],
-        rotate: [0, 180],
-        opacity: [0, 1, 0],
-      }}
-      transition={{
-        duration: 0.8,
-        ease: 'easeOut',
-      }}
-    >
-      <path
-        d="M80 0C80 0 84.2846 41.2925 101.496 58.504C118.707 75.7154 160 80 160 80C160 80 118.707 84.2846 101.496 101.496C84.2846 118.707 80 160 80 160C80 160 75.7154 118.707 58.504 101.496C41.2925 84.2846 0 80 0 80C0 80 41.2925 75.7154 58.504 58.504C75.7154 41.2925 80 0 80 0Z"
-        fill={color}
-      />
-    </motion.svg>
-  );
+@keyframes shadowPulse {
+    0%, 100% {
+        box-shadow:
+            0 0 0 1px rgba($primary, 0.2),
+            0 0 20px rgba($primary, 0.06),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+    50% {
+        box-shadow:
+            0 0 0 1px rgba($primary, 0.35),
+            0 0 60px rgba($primary, 0.15),
+            inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
 }
 ```
 
-#### Sparkle Wrapper
-```tsx
-export function SparkleWrapper({
-  children,
-  sparkleCount = 3,
-}: {
-  children: React.ReactNode;
-  sparkleCount?: number;
-}) {
-  const [sparkles, setSparkles] = useState<Array<{ id: number; x: number; y: number; size: number; color: string }>>([]);
+## Animated Border (borderShift)
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const sparkle = {
-        id: Date.now(),
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        size: Math.random() * 15 + 10,
-        color: ['#FFC700', '#FF6B6B', '#4ECDC4', '#45B7D1'][Math.floor(Math.random() * 4)],
-      };
-      setSparkles((prev) => [...prev.slice(-sparkleCount + 1), sparkle]);
-    }, 500);
+From `_hero-glass.scss` — spinning gradient border for hero card:
 
-    return () => clearInterval(interval);
-  }, [sparkleCount]);
+```scss
+@keyframes borderShift {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
 
-  return (
-    <span className="relative inline-block">
-      {sparkles.map((sparkle) => (
-        <span
-          key={sparkle.id}
-          className="absolute pointer-events-none"
-          style={{
-            left: `${sparkle.x}%`,
-            top: `${sparkle.y}%`,
-            transform: 'translate(-50%, -50%)',
-          }}
-        >
-          <Sparkle size={sparkle.size} color={sparkle.color} />
-        </span>
-      ))}
-      <span className="relative z-10">{children}</span>
-    </span>
-  );
+.animated-border-card {
+    position: relative;
+    border-radius: 20px;
+
+    &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        padding: 1px;
+        background: linear-gradient(
+            135deg,
+            rgba($primary, 0.6),
+            rgba(255, 255, 255, 0.15) 40%,
+            transparent 80%
+        );
+        background-size: 200% 200%;
+        animation: borderShift 4s ease infinite;
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+                mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: destination-out;
+                mask-composite: exclude;
+        pointer-events: none;
+    }
 }
 ```
 
-### 4. Animated Borders
+## GSAP Accent: Scroll-Triggered Badge Bounce
 
-#### Gradient Border Animation
-```tsx
-export function AnimatedGradientBorder({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="relative p-[2px] rounded-xl overflow-hidden">
-      <motion.div
-        className="absolute inset-0"
-        style={{
-          background: 'linear-gradient(90deg, #ff0080, #ff8c00, #40e0d0, #ff0080)',
-          backgroundSize: '300% 100%',
-        }}
-        animate={{
-          backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-        }}
-        transition={{
-          duration: 3,
-          repeat: Infinity,
-          ease: 'linear',
-        }}
-      />
-      <div className="relative bg-slate-900 rounded-xl">{children}</div>
-    </div>
-  );
-}
+Counters and decorative badges can use `once: true` (the only fire-once exception):
+
+```js
+// One-shot OK for entrance sequence that can't reverse meaningfully
+gsap.from('.hero-badge', {
+    scale: 0.8, opacity: 0,
+    duration: 0.6, ease: 'back.out(1.7)',
+    scrollTrigger: {
+        trigger: '.hero-badge',
+        start: 'top 80%',
+        once: true,        // fire-once is acceptable for small entry accents
+    }
+});
 ```
 
-#### Rotating Border
-```tsx
-export function RotatingBorder({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="relative p-[2px] rounded-xl overflow-hidden">
-      <motion.div
-        className="absolute inset-[-50%] w-[200%] h-[200%]"
-        style={{
-          background: 'conic-gradient(from 0deg, #ff0080, #ff8c00, #40e0d0, #7928ca, #ff0080)',
-        }}
-        animate={{ rotate: 360 }}
-        transition={{
-          duration: 3,
-          repeat: Infinity,
-          ease: 'linear',
-        }}
-      />
-      <div className="relative bg-slate-900 rounded-xl">{children}</div>
-    </div>
-  );
-}
+For repeatable accents on cards, use scrub:
+
+```js
+scrubEach(document.querySelectorAll('.feature-icon'), { scale: 0.85, opacity: 0 }, '.features-grid', 88, 55, 4);
 ```
 
-### 5. Shimmer Effects
+## Anti-Patterns
 
-#### Shimmer Highlight
-```tsx
-export function ShimmerHighlight({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="relative inline-block overflow-hidden">
-      <span className="relative z-10">{children}</span>
-      <motion.span
-        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12"
-        initial={{ x: '-100%' }}
-        animate={{ x: '200%' }}
-        transition={{
-          duration: 2,
-          repeat: Infinity,
-          repeatDelay: 3,
-          ease: 'easeInOut',
-        }}
-      />
-    </span>
-  );
-}
-```
-
-#### Button Shimmer
-```tsx
-export function ShimmerButton({ children }: { children: React.ReactNode }) {
-  return (
-    <motion.button
-      className="relative px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg text-white font-medium overflow-hidden"
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-    >
-      <span className="relative z-10">{children}</span>
-      <motion.div
-        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent skew-x-12"
-        initial={{ x: '-100%' }}
-        whileHover={{
-          x: '100%',
-          transition: { duration: 0.5 },
-        }}
-      />
-    </motion.button>
-  );
-}
-```
-
-### 6. Cursor Effects
-
-#### Cursor Glow
-```tsx
-export function CursorGlow() {
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setPosition({ x: e.clientX, y: e.clientY });
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-
-  return (
-    <motion.div
-      className="fixed w-64 h-64 rounded-full pointer-events-none z-50"
-      style={{
-        background: 'radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)',
-      }}
-      animate={{
-        x: position.x - 128,
-        y: position.y - 128,
-      }}
-      transition={{
-        type: 'spring',
-        stiffness: 500,
-        damping: 30,
-      }}
-    />
-  );
-}
-```
-
-### 7. Decorative Lines
-
-#### Animated Underline
-```tsx
-export function AnimatedUnderline({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="relative inline-block group">
-      {children}
-      <motion.span
-        className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500"
-        initial={{ width: '0%' }}
-        whileHover={{ width: '100%' }}
-        transition={{ duration: 0.3, ease: 'easeOut' }}
-      />
-    </span>
-  );
-}
-```
-
-#### Connecting Lines
-```tsx
-export function ConnectingLine({
-  from,
-  to,
-}: {
-  from: { x: number; y: number };
-  to: { x: number; y: number };
-}) {
-  const length = Math.sqrt((to.x - from.x) ** 2 + (to.y - from.y) ** 2);
-  const angle = Math.atan2(to.y - from.y, to.x - from.x) * (180 / Math.PI);
-
-  return (
-    <motion.div
-      className="absolute h-0.5 bg-gradient-to-r from-purple-500 to-transparent origin-left"
-      style={{
-        left: from.x,
-        top: from.y,
-        width: 0,
-        transform: `rotate(${angle}deg)`,
-      }}
-      animate={{ width: length }}
-      transition={{ duration: 0.5, ease: 'easeOut' }}
-    />
-  );
-}
-```
-
-## Examples
-
-<example>
-Context: User wants decorative floating elements around content
-user: "Add floating shapes around my hero section"
-assistant: Using FloatingShapes for ambient decoration:
-```tsx
-<div className="relative">
-  <FloatingShapes count={20} />
-  <HeroContent />
-</div>
-```
-</example>
-
-<example>
-Context: User wants a glowing effect on a card
-user: "Make this card have a pulsing glow effect"
-assistant: Wrapping with GlowBorder:
-```tsx
-<GlowBorder color="#667eea">
-  <Card>Content</Card>
-</GlowBorder>
-```
-</example>
-
-## Related Skills
-
-- **background-animations** - Full-page backgrounds
-- **creative-effects** - Morphing and liquid effects
-- **css-animations** - Keyframe-based decorations
-
-## Author
-
-Created by Brookside BI as part of React Animation Studio
+- `filter: blur(100px)` — use 70px max for GPU performance
+- Multiple simultaneous pulsing glows — use sparingly (hero CTA only)
+- `rotation: 360` continuous spin — use `slowSpin` at 20s+ instead
+- Hard-coded `#00b39f` — always use `$primary`
+- Inline `style="animation: ..."` — all animations belong in SCSS
