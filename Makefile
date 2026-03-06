@@ -46,9 +46,12 @@ docker:
 ## Set up local Claude Code configuration from contrib/claude/ templates.
 ## Run once after cloning if you use Claude Code as your AI coding assistant.
 setup-claude:
-	@mkdir -p .claude/agents .claude/skills/new-section
+	@mkdir -p .claude/agents .claude/skills/new-section .claude/skills/gsap-animations .claude/skills/scroll-animations .claude/skills/glass-morphism
 	@cp contrib/claude/agents/*.md .claude/agents/
 	@cp contrib/claude/skills/new-section/SKILL.md .claude/skills/new-section/
+	@cp contrib/claude/skills/gsap-animations/SKILL.md .claude/skills/gsap-animations/
+	@cp contrib/claude/skills/scroll-animations/SKILL.md .claude/skills/scroll-animations/
+	@cp contrib/claude/skills/glass-morphism/SKILL.md .claude/skills/glass-morphism/
 	@cp contrib/claude/settings-template.json .claude/settings.json
 	@echo "Claude Code setup complete."
 	@echo "Set GITHUB_PERSONAL_ACCESS_TOKEN in your environment for GitHub MCP."
